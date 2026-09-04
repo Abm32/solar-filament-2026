@@ -1,0 +1,20 @@
+seed: 42
+image_size: 512
+batch_size: 8
+epochs: 30
+learning_rate: 0.0003
+weight_decay: 0.0001
+encoder: efficientnet-b3
+architecture: unetplusplus
+loss:
+  bce_weight: 0.5
+  dice_weight: 0.5
+data:
+  train_images: data/processed/train/images
+  train_masks: data/processed/train/masks
+  valid_images: data/processed/valid/images
+  valid_masks: data/processed/valid/masks
+outputs:
+  checkpoints: models
+  logs: outputs/logs
+
