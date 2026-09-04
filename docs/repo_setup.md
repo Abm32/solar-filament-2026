@@ -8,10 +8,15 @@ The local GitHub CLI account exists but the token is invalid:
 gh auth status -> token invalid for account Abm32
 ```
 
-After re-authentication:
+Remote repository:
+
+```text
+origin https://github.com/Abm32/solar-filament-2026.git
+```
+
+Create/push command used:
 
 ```bash
-gh auth login -h github.com
 gh repo create solar-filament-2026 --public --source=. --remote=origin --push
 ```
 
@@ -25,4 +30,3 @@ Commit after each useful milestone:
 - first trainable model;
 - post-processing improvements;
 - final report assets.
-

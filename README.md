@@ -2,6 +2,8 @@
 
 Repository for the Kaggle Solar Filament Segmentation Challenge 2026.
 
+Current status is tracked in `docs/status_2026-09-04.md`.
+
 The working strategy is a staged, reproducible pipeline:
 
 1. Build a strong classical/CV baseline to validate RLE encoding and submission format.
