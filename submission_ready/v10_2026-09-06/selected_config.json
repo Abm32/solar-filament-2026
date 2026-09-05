@@ -1,0 +1,42 @@
+{
+  "candidate": "v10_quality_rank_rescue40",
+  "config": {
+    "resolution": 1024,
+    "mode": "refined_constrained",
+    "threshold": 0.4,
+    "tta": true,
+    "confidence": 0.4,
+    "detector_policy": "flip_consensus",
+    "quality": "quality_rank",
+    "rescue": "rescue40",
+    "rescue_confidence": 0.4,
+    "rescue_threshold": 0.45,
+    "rescue_min_views": 3,
+    "rescue_min_proposal_support": 0.5,
+    "rescue_min_residual_fraction": 0.9,
+    "duplicate_iou": 0.5,
+    "duplicate_containment": 0.8,
+    "complexity": 2
+  },
+  "selected_on": "tune_pq only",
+  "unchanged": false,
+  "eligible": [
+    "v10_control",
+    "v10_none_rescue35",
+    "v10_none_rescue40",
+    "v10_drop_empty_none",
+    "v10_proposal50_none",
+    "v10_views3_none",
+    "v10_quality_rank_none",
+    "v10_quality_rank_rescue35",
+    "v10_quality_rank_rescue40"
+  ],
+  "excluded_combinations": [
+    "v10_drop_empty_rescue35",
+    "v10_drop_empty_rescue40",
+    "v10_proposal50_rescue35",
+    "v10_proposal50_rescue40",
+    "v10_views3_rescue35",
+    "v10_views3_rescue40"
+  ]
+}

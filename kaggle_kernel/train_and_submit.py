@@ -6,9 +6,11 @@ import random
 import shutil
 import subprocess
 import sys
+from importlib.metadata import version
+from dataclasses import dataclass
 from pathlib import Path
 
-subprocess.run([sys.executable, "-m", "pip", "install", "-q", "ultralytics"], check=True)
+subprocess.run([sys.executable, "-m", "pip", "install", "-q", "ultralytics==8.4.138"], check=True)
 
 import cv2
 import numpy as np
@@ -34,10 +36,10 @@ class CFG:
     yolo_dir = Path("/kaggle/working/yolo_dataset")
     seed = 42
     imgsz = 1024
-    batch = 4
-    epochs = 30
-    patience = 5
-    model = "yolo11s-seg.pt"
+    batch = 2
+    epochs = 60
+    patience = 15
+    model = "yolo11m-seg.pt"
     mask_ratio = 2
     crop_size = 256
     crop_context = 1.8
@@ -45,6 +47,31 @@ class CFG:
     refiner_epochs = 8
     refiner_threshold = 0.65
     min_component_size = 20
+    overlap_dilate = 3
+    use_all_train_annotators = True
+    single_class = True
+    fliplr = 0.5
+    flipud = 0.5
+    top_submission_candidates = 5
+    public_hedge_margin = 0.03
+
+
+@dataclass(frozen=True)
+class Candidate:
+    pq: float
+    conf: float
+    mode: str
+    tp: int
+    fp: int
+    fn: int
+
+    @property
+    def precision(self):
+        return self.tp / (self.tp + self.fp) if self.tp + self.fp else 0.0
+
+    @property
+    def recall(self):
+        return self.tp / (self.tp + self.fn) if self.tp + self.fn else 0.0
 
 
 def seed_everything(seed: int) -> None:
@@ -84,7 +111,7 @@ def polygon_to_yolo_line(polygon, width, height, class_id):
     return f"{class_id} " + " ".join(f"{value:.6f}" for value in points.flatten())
 
 
-def write_yolo_split(split_name, image_ids, images, annotations, cat_id_to_yolo):
+def write_yolo_split(split_name, image_ids, images, annotations, cat_id_to_yolo, unique_names=False):
     image_output = CFG.yolo_dir / "images" / split_name
     label_output = CFG.yolo_dir / "labels" / split_name
     image_output.mkdir(parents=True, exist_ok=True)
@@ -93,35 +120,58 @@ def write_yolo_split(split_name, image_ids, images, annotations, cat_id_to_yolo)
     for image_id in image_ids:
         info = images[image_id]
         source = CFG.train_dir / info["file_name"]
-        target = image_output / info["file_name"]
+        source_path = Path(info["file_name"])
+        target_name = (
+            f"{source_path.stem}_ann{image_id}{source_path.suffix}" if unique_names else info["file_name"]
+        )
+        target = image_output / target_name
         if not target.exists():
             os.symlink(source, target)
 
         lines = []
         for annotation in annotations.get(image_id, []):
-            class_id = cat_id_to_yolo[annotation["category_id"]]
+            class_id = cat_id_to_yolo[annotation["category_id"]] if cat_id_to_yolo else 0
             for polygon in annotation["segmentation"]:
                 if len(polygon) >= 6:
                     lines.append(
                         polygon_to_yolo_line(polygon, info["width"], info["height"], class_id)
                     )
-        (label_output / f"{Path(info['file_name']).stem}.txt").write_text("\n".join(lines))
+        (label_output / f"{Path(target_name).stem}.txt").write_text("\n".join(lines))
 
 
 def prepare_yolo_data(coco, images, annotations):
+    if CFG.yolo_dir.exists():
+        shutil.rmtree(CFG.yolo_dir)
+    file_to_ids = {}
+    for image_id, info in images.items():
+        file_to_ids.setdefault(info["file_name"], []).append(image_id)
     file_to_best_id = best_annotator_ids(images, annotations)
     files = sorted(file_to_best_id)
     random.Random(CFG.seed).shuffle(files)
     n_valid = round(len(files) * 0.2)
     valid_files = files[:n_valid]
     train_files = files[n_valid:]
-    train_ids = [file_to_best_id[file_name] for file_name in train_files]
+    if CFG.use_all_train_annotators:
+        train_ids = [image_id for file_name in train_files for image_id in file_to_ids[file_name]]
+    else:
+        train_ids = [file_to_best_id[file_name] for file_name in train_files]
     valid_ids = [file_to_best_id[file_name] for file_name in valid_files]
 
-    categories = sorted(coco["categories"], key=lambda category: category["id"])
-    cat_id_to_yolo = {category["id"]: index for index, category in enumerate(categories)}
+    if CFG.single_class:
+        categories = [{"id": 0, "name": "filament"}]
+        cat_id_to_yolo = None
+    else:
+        categories = sorted(coco["categories"], key=lambda category: category["id"])
+        cat_id_to_yolo = {category["id"]: index for index, category in enumerate(categories)}
 
-    write_yolo_split("train", train_ids, images, annotations, cat_id_to_yolo)
+    write_yolo_split(
+        "train",
+        train_ids,
+        images,
+        annotations,
+        cat_id_to_yolo,
+        unique_names=CFG.use_all_train_annotators,
+    )
     write_yolo_split("val", valid_ids, images, annotations, cat_id_to_yolo)
 
     names = "\n".join(f"  {index}: {category['name']}" for index, category in enumerate(categories))
@@ -207,11 +257,12 @@ class CropUNet(nn.Module):
 
 
 def annotation_mask(image_shape, annotation):
-    mask = np.zeros(image_shape, dtype=np.uint8)
-    for polygon in annotation["segmentation"]:
-        points = np.round(np.array(polygon, dtype=np.float32).reshape(-1, 2)).astype(np.int32)
-        cv2.fillPoly(mask, [points], 1)
-    return mask
+    height, width = image_shape
+    polygons = annotation["segmentation"]
+    if not polygons:
+        return np.zeros(image_shape, dtype=np.uint8)
+    rles = mask_utils.frPyObjects(polygons, height, width)
+    return mask_utils.decode(mask_utils.merge(rles))
 
 
 def build_crop_arrays(image_ids, images, annotations):
@@ -339,11 +390,19 @@ def train_refiner(train_ids, valid_ids, images, annotations):
 
 
 @torch.no_grad()
-def refine_masks(image_gray, masks, refiner, threshold=CFG.refiner_threshold):
+def refine_masks(
+    image_gray,
+    masks,
+    refiner,
+    threshold=CFG.refiner_threshold,
+    constrain_to_yolo=True,
+    dilate_radius=CFG.overlap_dilate,
+):
     device = next(refiner.parameters()).device
     refined = []
     for mask in masks:
         if mask.sum() == 0:
+            refined.append(mask)
             continue
         x0, y0, x1, y1 = square_bounds(mask)
         crop = cv2.resize(
@@ -357,15 +416,40 @@ def refine_masks(image_gray, masks, refiner, threshold=CFG.refiner_threshold):
         )
         prob = refiner(tensor).sigmoid()[0, 0].cpu().numpy()
         crop_mask = cv2.resize(prob, (x1 - x0, y1 - y0), interpolation=cv2.INTER_LINEAR) >= threshold
+        if constrain_to_yolo:
+            yolo_crop = mask[y0:y1, x0:x1].astype(np.uint8)
+            if dilate_radius > 0:
+                kernel = cv2.getStructuringElement(
+                    cv2.MORPH_ELLIPSE,
+                    (2 * dilate_radius + 1, 2 * dilate_radius + 1),
+                )
+                yolo_crop = cv2.dilate(yolo_crop, kernel)
+            crop_mask = crop_mask & (yolo_crop > 0)
         if crop_mask.any():
             full = np.zeros_like(mask, dtype=np.uint8)
             full[y0:y1, x0:x1] = crop_mask
             refined.append(full)
+        else:
+            refined.append(mask)
     return refined
 
 
-def predict_instances(model, image_path, conf, refiner):
-    image_gray = cv2.imread(str(image_path), cv2.IMREAD_GRAYSCALE)
+def make_non_overlapping(scored_masks):
+    kept = []
+    occupied = None
+    for score, mask in sorted(scored_masks, key=lambda item: item[0], reverse=True):
+        clean = mask.astype(bool)
+        if occupied is None:
+            occupied = np.zeros_like(clean, dtype=bool)
+        clean = clean & ~occupied
+        if clean.sum() < CFG.min_component_size:
+            continue
+        occupied |= clean
+        kept.append((score, clean.astype(np.uint8)))
+    return kept
+
+
+def predict_yolo(model, image_path, conf):
     result = model.predict(
         str(image_path),
         imgsz=CFG.imgsz,
@@ -375,21 +459,38 @@ def predict_instances(model, image_path, conf, refiner):
         verbose=False,
     )[0]
     if result.masks is None:
-        return []
+        return [], []
     masks = [mask.cpu().numpy().astype(np.uint8) for mask in result.masks.data]
-    return refine_masks(image_gray, masks, refiner)
+    scores = result.boxes.conf.detach().cpu().numpy().tolist()
+    return masks, scores
+
+
+def predict_instances(model, image_path, conf, refiner, mode="refined_constrained"):
+    image_gray = cv2.imread(str(image_path), cv2.IMREAD_GRAYSCALE)
+    masks, scores = predict_yolo(model, image_path, conf)
+    if not masks:
+        return []
+    if mode == "yolo_only":
+        pred_masks = masks
+    elif mode == "refined_free":
+        pred_masks = refine_masks(image_gray, masks, refiner, constrain_to_yolo=False)
+    else:
+        pred_masks = refine_masks(image_gray, masks, refiner, constrain_to_yolo=True)
+    scored = [(score, mask) for score, mask in zip(scores, pred_masks) if mask.sum() >= CFG.min_component_size]
+    return [mask for _, mask in make_non_overlapping(scored)]
 
 
 def pairwise_iou(gt_masks, pred_masks):
     if not gt_masks or not pred_masks:
         return np.zeros((len(gt_masks), len(pred_masks)), dtype=np.float32)
-    gt = np.stack(gt_masks).reshape(len(gt_masks), -1).astype(bool)
-    pred = np.stack(pred_masks).reshape(len(pred_masks), -1).astype(bool)
-    inter = gt.astype(np.uint8) @ pred.astype(np.uint8).T
-    gt_area = gt.sum(axis=1, keepdims=True)
-    pred_area = pred.sum(axis=1, keepdims=True).T
-    union = gt_area + pred_area - inter
-    return np.where(union == 0, 0, inter / union)
+    gt = [mask_utils.encode(np.asfortranarray(mask.astype(bool).astype(np.uint8))) for mask in gt_masks]
+    pred = [mask_utils.encode(np.asfortranarray(mask.astype(bool).astype(np.uint8))) for mask in pred_masks]
+    return mask_utils.iou(pred, gt, [0] * len(gt)).T
+
+
+def all_validation_annotator_ids(valid_ids, images):
+    valid_files = {images[image_id]["file_name"] for image_id in valid_ids}
+    return [image_id for image_id, info in images.items() if info["file_name"] in valid_files]
 
 
 def pq_for_image(gt_masks, pred_masks, threshold=0.5):
@@ -408,43 +509,140 @@ def pq_for_image(gt_masks, pred_masks, threshold=0.5):
 
 
 def validation_sweep(yolo_model, refiner, valid_ids, images, annotations):
-    confs = [0.15, 0.2, 0.25, 0.3, 0.35]
-    best = (0.0, 0.25)
-    for conf in confs:
-        iou_sum = 0.0
-        tp_total = fp_total = fn_total = 0
-        for image_id in tqdm(valid_ids, desc=f"val conf {conf}"):
-            info = images[image_id]
-            image_path = CFG.train_dir / info["file_name"]
-            gt_masks = []
-            for ann in annotations.get(image_id, []):
-                mask = annotation_mask((info["height"], info["width"]), ann)
-                if mask.sum() >= CFG.min_component_size:
-                    gt_masks.append(mask)
-            pred_masks = [
-                mask
-                for mask in predict_instances(yolo_model, image_path, conf, refiner)
-                if mask.sum() >= CFG.min_component_size
-            ]
-            pq, tp, fp, fn = pq_for_image(gt_masks, pred_masks)
-            denom = tp + 0.5 * fp + 0.5 * fn
-            iou_sum += pq * denom
-            tp_total += tp
-            fp_total += fp
-            fn_total += fn
-        final_pq = iou_sum / (tp_total + 0.5 * fp_total + 0.5 * fn_total)
-        print(f"conf={conf:.2f} val_pq={final_pq:.4f} tp={tp_total} fp={fp_total} fn={fn_total}")
-        if final_pq > best[0]:
-            best = (final_pq, conf)
-    return best
+    confs = [0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45]
+    modes = ["yolo_only", "refined_constrained", "refined_free"]
+    best = Candidate(0.0, 0.25, "refined_constrained", 0, 0, 0)
+    candidates = []
+    lines = []
+    for mode in modes:
+        for conf in confs:
+            iou_sum = 0.0
+            tp_total = fp_total = fn_total = 0
+            for image_id in tqdm(valid_ids, desc=f"val {mode} conf {conf}"):
+                info = images[image_id]
+                image_path = CFG.train_dir / info["file_name"]
+                gt_masks = []
+                for ann in annotations.get(image_id, []):
+                    mask = annotation_mask((info["height"], info["width"]), ann)
+                    if mask.any():
+                        gt_masks.append(mask)
+                pred_masks = [
+                    mask
+                    for mask in predict_instances(yolo_model, image_path, conf, refiner, mode=mode)
+                    if mask.sum() >= CFG.min_component_size
+                ]
+                pq, tp, fp, fn = pq_for_image(gt_masks, pred_masks)
+                denom = tp + 0.5 * fp + 0.5 * fn
+                iou_sum += pq * denom
+                tp_total += tp
+                fp_total += fp
+                fn_total += fn
+            denominator = tp_total + 0.5 * fp_total + 0.5 * fn_total
+            final_pq = iou_sum / denominator if denominator else 0.0
+            candidate = Candidate(final_pq, conf, mode, tp_total, fp_total, fn_total)
+            candidates.append(candidate)
+            line = (
+                f"mode={mode} conf={conf:.2f} val_pq={final_pq:.6f} "
+                f"tp={tp_total} fp={fp_total} fn={fn_total} "
+                f"precision={candidate.precision:.6f} recall={candidate.recall:.6f}"
+            )
+            print(line)
+            lines.append(line)
+            if final_pq > best.pq:
+                best = candidate
+    Path("/kaggle/working/validation_variants.txt").write_text("\n".join(lines) + "\n")
+    ranked = sorted(candidates, key=lambda item: item.pq, reverse=True)
+    pd.DataFrame(
+        [
+            {
+                "rank": index + 1,
+                "mode": candidate.mode,
+                "conf": candidate.conf,
+                "val_pq": candidate.pq,
+                "tp": candidate.tp,
+                "fp": candidate.fp,
+                "fn": candidate.fn,
+                "precision": candidate.precision,
+                "recall": candidate.recall,
+            }
+            for index, candidate in enumerate(ranked)
+        ]
+    ).to_csv("/kaggle/working/validation_candidates.csv", index=False)
+    return best, ranked
 
 
-def write_submission(yolo_model, refiner, conf):
+def write_validation_image_diagnostics(yolo_model, refiner, candidate, valid_ids, images, annotations):
     rows = []
+    for image_id in tqdm(valid_ids, desc="validation image diagnostics"):
+        info = images[image_id]
+        image_path = CFG.train_dir / info["file_name"]
+        gt_masks = []
+        for ann in annotations.get(image_id, []):
+            mask = annotation_mask((info["height"], info["width"]), ann)
+            if mask.any():
+                gt_masks.append(mask)
+        pred_masks = [
+            mask
+            for mask in predict_instances(yolo_model, image_path, candidate.conf, refiner, mode=candidate.mode)
+            if mask.sum() >= CFG.min_component_size
+        ]
+        pq, tp, fp, fn = pq_for_image(gt_masks, pred_masks)
+        rows.append(
+            {
+                "image_id": image_id,
+                "file_name": info["file_name"],
+                "pq": pq,
+                "gt_count": len(gt_masks),
+                "pred_count": len(pred_masks),
+                "tp": tp,
+                "fp": fp,
+                "fn": fn,
+            }
+        )
+    pd.DataFrame(rows).sort_values(["pq", "fn", "fp"], ascending=[True, False, False]).to_csv(
+        "/kaggle/working/validation_image_diagnostics.csv",
+        index=False,
+    )
+
+
+def choose_submission_candidates(ranked):
+    chosen = []
+    seen = set()
+
+    def add(candidate):
+        key = (candidate.mode, candidate.conf)
+        if key not in seen:
+            chosen.append(candidate)
+            seen.add(key)
+
+    for candidate in ranked:
+        add(candidate)
+        if len(chosen) >= CFG.top_submission_candidates:
+            break
+
+    best = ranked[0]
+    near_best = [
+        candidate
+        for candidate in ranked
+        if best.pq - candidate.pq <= CFG.public_hedge_margin
+    ]
+    add(max(near_best, key=lambda item: (item.recall, item.pq)))
+    add(max(near_best, key=lambda item: (item.precision, item.pq)))
+
+    yolo_only = [candidate for candidate in ranked if candidate.mode == "yolo_only"]
+    if yolo_only:
+        add(yolo_only[0])
+    return chosen
+
+
+def write_submission(yolo_model, refiner, conf, mode, output_name="submission.csv"):
+    rows = []
+    per_image_counts = []
     test_files = sorted(CFG.test_dir.glob("*.jpeg"))
     for image_path in tqdm(test_files, desc="test inference"):
         counter = 1
-        for mask in predict_instances(yolo_model, image_path, conf, refiner):
+        image_count = 0
+        for mask in predict_instances(yolo_model, image_path, conf, refiner, mode=mode):
             if mask.sum() < CFG.min_component_size:
                 continue
             rle = mask_utils.encode(np.asfortranarray(mask.astype(np.uint8)))
@@ -455,16 +653,53 @@ def write_submission(yolo_model, refiner, conf):
                 }
             )
             counter += 1
+            image_count += 1
+        per_image_counts.append(image_count)
     submission = pd.DataFrame(rows, columns=["filament_id", "segmentation_rle"])
-    submission.to_csv("/kaggle/working/submission.csv", index=False)
+    output_path = Path("/kaggle/working") / output_name
+    submission.to_csv(output_path, index=False)
+    counts = np.array(per_image_counts, dtype=np.int32)
+    diagnostics_name = output_path.with_suffix("").name + "_diagnostics.txt"
+    Path("/kaggle/working", diagnostics_name).write_text(
+        "\n".join(
+            [
+                f"file={output_name}",
+                f"rows={len(submission)}",
+                f"test_images={len(test_files)}",
+                f"populated_images={int((counts > 0).sum())}",
+                f"missing_images={int((counts == 0).sum())}",
+                f"mean_instances={float(counts.mean()) if len(counts) else 0:.4f}",
+                f"median_instances={float(np.median(counts)) if len(counts) else 0:.4f}",
+                f"max_instances={int(counts.max()) if len(counts) else 0}",
+                f"conf={conf}",
+                f"mode={mode}",
+            ]
+        )
+        + "\n"
+    )
     print(submission.head())
-    print(f"submission rows={len(submission)} conf={conf}")
+    print(f"{output_name} rows={len(submission)} conf={conf} mode={mode}")
 
 
 def main():
     seed_everything(CFG.seed)
     coco, images, annotations = load_coco()
     train_ids, valid_ids = prepare_yolo_data(coco, images, annotations)
+    evaluation_ids = all_validation_annotator_ids(valid_ids, images)
+    assert not (
+        {images[image_id]["file_name"] for image_id in train_ids}
+        & {images[image_id]["file_name"] for image_id in evaluation_ids}
+    ), "Training and validation files overlap"
+    Path("/kaggle/working/run_manifest.json").write_text(json.dumps({
+        "experiment": "single_class_flips_coco_targets_all_annotator_validation",
+        "config": {key: value for key, value in vars(CFG).items() if not key.startswith("_")},
+        "versions": {name: version(name) for name in ["ultralytics", "torch", "torchvision", "pycocotools", "numpy"]},
+        "train_ids": train_ids,
+        "validation_best_ids": valid_ids,
+        "validation_all_ids": evaluation_ids,
+        "selection_metric": "all_annotator_global_pq",
+        "target_rasterization": "COCO polygons via frPyObjects/merge/decode",
+    }, indent=2, default=str))
     device = "0,1" if torch.cuda.device_count() > 1 else (0 if torch.cuda.is_available() else "cpu")
     print(f"torch_cuda={torch.cuda.is_available()} gpu_count={torch.cuda.device_count()} device={device}")
 
@@ -477,13 +712,13 @@ def main():
         device=device,
         patience=CFG.patience,
         seed=CFG.seed,
-        single_cls=False,
+        single_cls=CFG.single_class,
         mask_ratio=CFG.mask_ratio,
         overlap_mask=False,
         hsv_h=0.0,
         hsv_s=0.0,
-        fliplr=0.0,
-        flipud=0.0,
+        fliplr=CFG.fliplr,
+        flipud=CFG.flipud,
         mosaic=0.3,
         degrees=10,
         scale=0.3,
@@ -497,11 +732,29 @@ def main():
     yolo_model = YOLO("/kaggle/working/yolo_best.pt")
 
     refiner = train_refiner(train_ids, valid_ids, images, annotations)
-    best_pq, best_conf = validation_sweep(yolo_model, refiner, valid_ids, images, annotations)
+    best, ranked_candidates = validation_sweep(yolo_model, refiner, evaluation_ids, images, annotations)
     Path("/kaggle/working/validation_summary.txt").write_text(
-        f"best_conf={best_conf}\nbest_pq={best_pq}\n"
+        "\n".join(
+            [
+                f"best_conf={best.conf}",
+                f"best_pq={best.pq}",
+                f"best_mode={best.mode}",
+                f"best_tp={best.tp}",
+                f"best_fp={best.fp}",
+                f"best_fn={best.fn}",
+                f"best_precision={best.precision}",
+                f"best_recall={best.recall}",
+                "evaluation=all_annotators",
+                f"validation_files={len(valid_ids)}",
+                f"validation_annotator_entries={len(evaluation_ids)}",
+            ]
+        )
+        + "\n"
     )
-    write_submission(yolo_model, refiner, best_conf)
+    write_validation_image_diagnostics(yolo_model, refiner, best, evaluation_ids, images, annotations)
+    for index, candidate in enumerate(choose_submission_candidates(ranked_candidates), start=1):
+        name = "submission.csv" if index == 1 else f"submission_candidate_{index}.csv"
+        write_submission(yolo_model, refiner, candidate.conf, candidate.mode, output_name=name)
 
 
 if __name__ == "__main__":

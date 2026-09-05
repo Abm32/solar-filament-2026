@@ -17,3 +17,5 @@ wandb/
 .env
 kaggle.json
 
+# Downloaded third-party payload notebook; retain only our linked review.
+references/notebooks/lamhuy_unet_055/

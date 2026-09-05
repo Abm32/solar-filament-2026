@@ -1,0 +1,323 @@
+{
+  "candidate": "v10_quality_rank_rescue40",
+  "config": {
+    "resolution": 1024,
+    "mode": "refined_constrained",
+    "threshold": 0.4,
+    "tta": true,
+    "confidence": 0.4,
+    "detector_policy": "flip_consensus",
+    "quality": "quality_rank",
+    "rescue": "rescue40",
+    "rescue_confidence": 0.4,
+    "rescue_threshold": 0.45,
+    "rescue_min_views": 3,
+    "rescue_min_proposal_support": 0.5,
+    "rescue_min_residual_fraction": 0.9,
+    "duplicate_iou": 0.5,
+    "duplicate_containment": 0.8,
+    "complexity": 2
+  },
+  "selected_on": "tune_pq only",
+  "unchanged": false,
+  "eligible": [
+    "v10_control",
+    "v10_none_rescue35",
+    "v10_none_rescue40",
+    "v10_drop_empty_none",
+    "v10_proposal50_none",
+    "v10_views3_none",
+    "v10_quality_rank_none",
+    "v10_quality_rank_rescue35",
+    "v10_quality_rank_rescue40"
+  ],
+  "excluded_combinations": [
+    "v10_drop_empty_rescue35",
+    "v10_drop_empty_rescue40",
+    "v10_proposal50_rescue35",
+    "v10_proposal50_rescue40",
+    "v10_views3_rescue35",
+    "v10_views3_rescue40"
+  ],
+  "control": "v10_control",
+  "comparison": {
+    "tune": {
+      "images": 94,
+      "candidate_pq": 0.4340642398097046,
+      "control_pq": 0.43282327742993015,
+      "delta_pq": 0.0012409623797744462,
+      "delta_95pct_interval": [
+        -0.0006880200681250267,
+        0.0034631293961922957
+      ],
+      "delta_counts": {
+        "iou_sum": 3.8273538641259393,
+        "tp": 6.0,
+        "fp": 6.0,
+        "fn": -6.0
+      }
+    },
+    "audit": {
+      "images": 47,
+      "candidate_pq": 0.4518370899612849,
+      "control_pq": 0.4501295960589769,
+      "delta_pq": 0.0017074939023080105,
+      "delta_95pct_interval": [
+        -0.0023180184461260344,
+        0.00904487410929333
+      ],
+      "delta_counts": {
+        "iou_sum": 1.5969167042596268,
+        "tp": 2.0,
+        "fp": 2.0,
+        "fn": -2.0
+      }
+    },
+    "all": {
+      "images": 141,
+      "candidate_pq": 0.439245606627743,
+      "control_pq": 0.43787276745033465,
+      "delta_pq": 0.0013728391774083248,
+      "delta_95pct_interval": [
+        -0.0005239155930916492,
+        0.003907457083624626
+      ],
+      "delta_counts": {
+        "iou_sum": 5.424270568385623,
+        "tp": 8.0,
+        "fp": 8.0,
+        "fn": -8.0
+      }
+    }
+  },
+  "ablations": {
+    "v10_control": {
+      "tune": {
+        "images": 94,
+        "candidate_pq": 0.43282327742993015,
+        "control_pq": 0.43282327742993015,
+        "delta_pq": 0.0,
+        "delta_95pct_interval": [
+          0.0,
+          0.0
+        ],
+        "delta_counts": {
+          "iou_sum": 0.0,
+          "tp": 0.0,
+          "fp": 0.0,
+          "fn": 0.0
+        }
+      },
+      "audit": {
+        "images": 47,
+        "candidate_pq": 0.4501295960589769,
+        "control_pq": 0.4501295960589769,
+        "delta_pq": 0.0,
+        "delta_95pct_interval": [
+          0.0,
+          0.0
+        ],
+        "delta_counts": {
+          "iou_sum": 0.0,
+          "tp": 0.0,
+          "fp": 0.0,
+          "fn": 0.0
+        }
+      },
+      "all": {
+        "images": 141,
+        "candidate_pq": 0.43787276745033465,
+        "control_pq": 0.43787276745033465,
+        "delta_pq": 0.0,
+        "delta_95pct_interval": [
+          0.0,
+          0.0
+        ],
+        "delta_counts": {
+          "iou_sum": 0.0,
+          "tp": 0.0,
+          "fp": 0.0,
+          "fn": 0.0
+        }
+      }
+    },
+    "v10_none_rescue35": {
+      "tune": {
+        "images": 94,
+        "candidate_pq": 0.4333106773537777,
+        "control_pq": 0.43282327742993015,
+        "delta_pq": 0.0004873999238475535,
+        "delta_95pct_interval": [
+          -0.0025325914182469226,
+          0.0035044283334606467
+        ],
+        "delta_counts": {
+          "iou_sum": 5.246750075843352,
+          "tp": 8.0,
+          "fp": 14.0,
+          "fn": -8.0
+        }
+      }
+    },
+    "v10_none_rescue40": {
+      "tune": {
+        "images": 94,
+        "candidate_pq": 0.4335327209468241,
+        "control_pq": 0.43282327742993015,
+        "delta_pq": 0.0007094435168939484,
+        "delta_95pct_interval": [
+          -0.0010148440086214406,
+          0.002521750832060879
+        ],
+        "delta_counts": {
+          "iou_sum": 3.083586551106521,
+          "tp": 5.0,
+          "fp": 6.0,
+          "fn": -5.0
+        }
+      }
+    },
+    "v10_drop_empty_none": {
+      "tune": {
+        "images": 94,
+        "candidate_pq": 0.43282327742993015,
+        "control_pq": 0.43282327742993015,
+        "delta_pq": 0.0,
+        "delta_95pct_interval": [
+          0.0,
+          0.0
+        ],
+        "delta_counts": {
+          "iou_sum": 0.0,
+          "tp": 0.0,
+          "fp": 0.0,
+          "fn": 0.0
+        }
+      }
+    },
+    "v10_proposal50_none": {
+      "tune": {
+        "images": 94,
+        "candidate_pq": 0.43282327742993015,
+        "control_pq": 0.43282327742993015,
+        "delta_pq": 0.0,
+        "delta_95pct_interval": [
+          0.0,
+          0.0
+        ],
+        "delta_counts": {
+          "iou_sum": 0.0,
+          "tp": 0.0,
+          "fp": 0.0,
+          "fn": 0.0
+        }
+      }
+    },
+    "v10_views3_none": {
+      "tune": {
+        "images": 94,
+        "candidate_pq": 0.43282327742993015,
+        "control_pq": 0.43282327742993015,
+        "delta_pq": 0.0,
+        "delta_95pct_interval": [
+          0.0,
+          0.0
+        ],
+        "delta_counts": {
+          "iou_sum": 0.0,
+          "tp": 0.0,
+          "fp": 0.0,
+          "fn": 0.0
+        }
+      }
+    },
+    "v10_quality_rank_none": {
+      "tune": {
+        "images": 94,
+        "candidate_pq": 0.43335812091299747,
+        "control_pq": 0.43282327742993015,
+        "delta_pq": 0.0005348434830673154,
+        "delta_95pct_interval": [
+          0.0,
+          0.001810873677651137
+        ],
+        "delta_counts": {
+          "iou_sum": 0.7437673130193616,
+          "tp": 1.0,
+          "fp": 0.0,
+          "fn": -1.0
+        }
+      }
+    },
+    "v10_quality_rank_rescue35": {
+      "tune": {
+        "images": 94,
+        "candidate_pq": 0.4338393754223258,
+        "control_pq": 0.43282327742993015,
+        "delta_pq": 0.0010160979923956592,
+        "delta_95pct_interval": [
+          -0.0021601929390618127,
+          0.004233253210168912
+        ],
+        "delta_counts": {
+          "iou_sum": 5.990517388862713,
+          "tp": 9.0,
+          "fp": 14.0,
+          "fn": -9.0
+        }
+      }
+    },
+    "v10_quality_rank_rescue40": {
+      "tune": {
+        "images": 94,
+        "candidate_pq": 0.4340642398097046,
+        "control_pq": 0.43282327742993015,
+        "delta_pq": 0.0012409623797744462,
+        "delta_95pct_interval": [
+          -0.0006880200681250267,
+          0.0034631293961922957
+        ],
+        "delta_counts": {
+          "iou_sum": 3.8273538641259393,
+          "tp": 6.0,
+          "fp": 6.0,
+          "fn": -6.0
+        }
+      },
+      "audit": {
+        "images": 47,
+        "candidate_pq": 0.4518370899612849,
+        "control_pq": 0.4501295960589769,
+        "delta_pq": 0.0017074939023080105,
+        "delta_95pct_interval": [
+          -0.0023180184461260344,
+          0.00904487410929333
+        ],
+        "delta_counts": {
+          "iou_sum": 1.5969167042596268,
+          "tp": 2.0,
+          "fp": 2.0,
+          "fn": -2.0
+        }
+      },
+      "all": {
+        "images": 141,
+        "candidate_pq": 0.439245606627743,
+        "control_pq": 0.43787276745033465,
+        "delta_pq": 0.0013728391774083248,
+        "delta_95pct_interval": [
+          -0.0005239155930916492,
+          0.003907457083624626
+        ],
+        "delta_counts": {
+          "iou_sum": 5.424270568385623,
+          "tp": 8.0,
+          "fp": 8.0,
+          "fn": -8.0
+        }
+      }
+    }
+  },
+  "public_score": "unmeasured",
+  "audit_caveat": "Excluded from inference tuning; used in V6 checkpoint selection"
+}

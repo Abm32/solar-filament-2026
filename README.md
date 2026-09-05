@@ -2,7 +2,16 @@
 
 Repository for the Kaggle Solar Filament Segmentation Challenge 2026.
 
-Current status is tracked in `docs/status_2026-09-04.md`.
+**Resume here (saved 2026-09-05):** [V10 submission and continuation handoff](docs/handoff_2026-09-06.md).
+The [ready-to-upload V10 package](submission_ready/v10_2026-09-06/README.md) is validated
+and unsubmitted; expected next daily reset is **6 September, 05:30 AM IST**.
+Check live submissions first in case the user already uploaded it manually.
+
+Current status and the V7/V8 model review are tracked in `docs/status_2026-09-05.md`.
+
+The latest completed optimization is [V10 quality ordering and conservative V8 rescue](docs/v10_execution_2026-09-05.md).
+Earlier COCO target rasterization correction, inference sweeps, and crop postprocessing
+are recorded in [docs/optimization_2026-09-05.md](docs/optimization_2026-09-05.md).
 
 The working strategy is a staged, reproducible pipeline:
 
@@ -53,17 +62,14 @@ RLE counts are encoded with `pycocotools` for 2048 x 2048 masks.
 
 ## Repository Status
 
-GitHub remote is pending because the local `gh` token is currently invalid. Re-authenticate with:
+GitHub: [Abm32/solar-filament-2026](https://github.com/Abm32/solar-filament-2026),
+branch `main`. Code, experiment documentation, tests, and the prepared V10
+submission package are versioned. Raw data, model weights, bulk run outputs,
+credentials, and the downloaded third-party payload notebook remain excluded.
 
-```bash
-gh auth login -h github.com
-```
-
-Then create and push:
-
-```bash
-gh repo create solar-filament-2026 --public --source=. --remote=origin --push
-```
+The prepared CSV can be uploaded without rerunning inference. Reproducing the
+experiments additionally requires the data, checkpoints, and caches described
+in the [handoff](docs/handoff_2026-09-06.md).
 
 ## Training Skeleton
 

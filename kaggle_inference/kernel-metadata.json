@@ -1,0 +1,15 @@
+{
+  "id": "abhimanyu122/solar-filament-v9-inference",
+  "title": "Solar Filament V9 Inference",
+  "code_file": "optimize_inference.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": "true",
+  "enable_gpu": "true",
+  "enable_internet": "true",
+  "machine_shape": "NvidiaTeslaT4",
+  "dataset_sources": ["abhimanyu122/solar-filament-v6-checkpoints"],
+  "competition_sources": ["filament-segmentation-2026"],
+  "kernel_sources": [],
+  "model_sources": []
+}
