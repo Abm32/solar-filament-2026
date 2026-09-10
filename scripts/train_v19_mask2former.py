@@ -1,15 +1,19 @@
 """V19: Mask2Former training for solar filament instance segmentation.
 
 A genuinely different detector family from the YOLO-seg line (V6-V18), per
-docs/v19_design_2026-09-09.md. Runs on a standalone GPU VM (Azure NCASv3_T4),
-not a Kaggle kernel -- this script is self-contained: it installs its own
-dependencies, downloads competition data via the Kaggle CLI, converts the
-project's COCO annotations into the split Mask2Former/transformers expects,
-trains, and evaluates with this project's own PQ metric (src/pq_eval.py) on
-the SAME tune/audit split convention used by every V6-V18 run, so results are
-directly comparable to the accepted V17 baseline (tune 0.448703, public 0.39).
+docs/v19_design_2026-09-09.md. Runs either as a Kaggle kernel (competition
+data pre-mounted read-only at /kaggle/input/competitions, staged via
+scripts/prepare_v19_mask2former.py) or on a standalone GPU VM (Azure
+NCASv3_T4, downloading data via the Kaggle CLI) if that quota clears later --
+this script detects which environment it's in via KAGGLE_KERNEL_RUN_TYPE and
+adjusts dependency installation and data staging accordingly. Either way it
+converts the project's COCO annotations into the split Mask2Former/
+transformers expects, and (once --full is implemented) will train and
+evaluate with this project's own PQ metric (src/pq_eval.py) on the SAME
+tune/audit split convention used by every V6-V18 run, so results are directly
+comparable to the accepted V17 baseline (tune 0.448703, public 0.39).
 
-Usage (on the GPU VM, inside the repo root):
+Usage:
 
     python scripts/train_v19_mask2former.py --smoke        # memory/shape check first
     python scripts/train_v19_mask2former.py --full          # full training run
@@ -53,25 +57,42 @@ def _sh(cmd: list[str], **kwargs) -> None:
 
 
 def ensure_environment() -> None:
-    """Install the dependency set this script needs. Idempotent."""
-    packages = [
-        "torch==2.4.1",
-        "torchvision==0.19.1",
-        "transformers==4.44.2",
-        "pycocotools==2.0.8",
-        "opencv-python-headless==4.10.0.84",
-        "pandas==2.2.2",
-        "kaggle==1.6.17",
-    ]
+    """Install the dependency set this script needs. Idempotent.
+
+    Skips torch/torchvision on Kaggle kernels (KAGGLE_KERNEL_RUN_TYPE is set):
+    the Kaggle GPU docker image ships a CUDA-matched torch build already, and
+    reinstalling a pinned wheel risks breaking that match. On a standalone VM
+    (no Kaggle env markers) install everything explicitly.
+    """
+    import os
+
+    packages = ["transformers==4.44.2", "pycocotools==2.0.8"]
+    if not os.environ.get("KAGGLE_KERNEL_RUN_TYPE"):
+        packages = [
+            "torch==2.4.1",
+            "torchvision==0.19.1",
+            *packages,
+            "opencv-python-headless==4.10.0.84",
+            "pandas==2.2.2",
+            "kaggle==1.6.17",
+        ]
     _sh([sys.executable, "-m", "pip", "install", "--quiet", *packages])
 
 
-def ensure_data(data_root: Path) -> None:
-    """Pull the competition dataset if it is not already staged."""
+def ensure_data(data_root: Path) -> Path:
+    """Return the directory containing `MAGFiLO_1.0_Kaggle_2026/`.
+
+    On a Kaggle kernel the competition is already mounted read-only (this
+    script's staging adds `competition_sources`); `data_root` there is
+    `/kaggle/input/competitions`, which already contains
+    `filament-segmentation-2026/MAGFiLO_1.0_Kaggle_2026/...` -- nothing to
+    download, and the mount is read-only so a download would fail anyway.
+    On a standalone VM, pull it via the Kaggle CLI if not already staged.
+    """
     marker = data_root / "filament-segmentation-2026" / "MAGFiLO_1.0_Kaggle_2026"
     if marker.exists():
         print(f"data already staged at {marker}")
-        return
+        return data_root
     data_root.mkdir(parents=True, exist_ok=True)
     _sh([
         "kaggle", "competitions", "download",
@@ -81,6 +102,9 @@ def ensure_data(data_root: Path) -> None:
     zips = list(data_root.glob("*.zip"))
     for z in zips:
         _sh(["unzip", "-q", "-o", str(z), "-d", str(data_root)])
+    if not marker.exists():
+        raise RuntimeError(f"Download completed but expected data not found at {marker}")
+    return data_root
 
 
 @dataclass
@@ -93,36 +117,31 @@ class Split:
 def load_split(coco_path: Path) -> Split:
     """Reproduce this project's train/tune/audit file split from the COCO json.
 
-    This project's prior runs (V11-V18) hold a fixed set of files out as
-    "tune" (used for threshold/candidate selection) and "audit" (screening
-    only, never selects) -- see kaggle_inference/v17_compose.py's docstring.
-    The exact file lists live in each run's manifest.json under
-    outputs/kaggle_v17_full/v17_manifest.json; this loads that file if
-    present so V19 uses an IDENTICAL split, and falls back to a fresh
-    deterministic split (seeded, 80/10/10) if no manifest is found yet
-    (e.g. running on a fresh VM before pulling outputs/).
+    This is the SAME algorithm as kaggle_inference/optimize_inference.py's
+    validation_split(), used unchanged by every run V6-V18: sort files by
+    name, Random(42).shuffle, take the first 20% as held-out, the first 94
+    of held-out as tune, the rest as audit. It is deterministic given the
+    same COCO file, so it does not need a manifest lookup -- reproducing it
+    directly here (rather than depending on an outputs/ manifest key that
+    does not actually exist in this project's manifests) is what keeps V19's
+    tune/audit PQ comparable to V17's 0.448703 baseline.
     """
-    manifest_candidates = [
-        REPO_ROOT / "outputs" / "kaggle_v17_full" / "v17_manifest.json",
-        REPO_ROOT / "outputs" / "kaggle_v17_cache_pull" / "v17_manifest.json",
-    ]
-    for candidate in manifest_candidates:
-        if candidate.exists():
-            manifest = json.loads(candidate.read_text())
-            if "train_files" in manifest and "tune_files" in manifest:
-                print(f"reusing split from {candidate}")
-                return Split(
-                    train_files=manifest["train_files"],
-                    tune_files=manifest["tune_files"],
-                    audit_files=manifest.get("audit_files", []),
-                )
-    raise FileNotFoundError(
-        "No V17 manifest found to reuse the canonical split. Pull "
-        "outputs/kaggle_v17_full/ or outputs/kaggle_v17_cache_pull/ from the "
-        "existing runs before training V19, so tune/audit PQ stays directly "
-        "comparable to V17's 0.448703 baseline. Refusing to invent a new "
-        "split silently."
-    )
+    import random
+
+    from src.coco import best_annotator_image_ids, index_coco, load_coco
+
+    coco = load_coco(coco_path)
+    images, annotations = index_coco(coco)
+    best_ids = best_annotator_image_ids(images, annotations)
+    files = sorted(best_ids)
+    random.Random(SEED).shuffle(files)
+    held_out = files[:round(len(files) * 0.2)]
+    tune_files = held_out[:94]
+    audit_files = held_out[94:]
+    train_files = [name for name in files if name not in set(held_out)]
+    assert set(tune_files).isdisjoint(audit_files)
+    assert set(train_files).isdisjoint(held_out)
+    return Split(train_files=train_files, tune_files=tune_files, audit_files=audit_files)
 
 
 def build_hf_dataset(coco_path: Path, image_dir: Path, split: Split):
@@ -158,8 +177,6 @@ def run_smoke_test(dataset: dict, out_dir: Path) -> None:
     """Memory/shape probe on the WORST case (max-instance-density image), per
     the V18 post-mortem: never conclude a per-batch memory ceiling from a
     random subsample."""
-    import torch
-
     train = dataset["train"]
     if not train:
         raise RuntimeError("empty train split; check data staging")
@@ -167,12 +184,15 @@ def run_smoke_test(dataset: dict, out_dir: Path) -> None:
     print(f"worst-case smoke image: {densest['file_name']} "
           f"({len(densest['annotations'])} instances)")
 
+    import torch
+
     if not torch.cuda.is_available():
         raise RuntimeError(
             "CUDA not available -- smoke test must run on the GPU VM, not locally"
         )
 
     from transformers import Mask2FormerForUniversalSegmentation, Mask2FormerImageProcessor
+    from pycocotools import mask as mask_utils
     import cv2
     import numpy as np
 
@@ -181,6 +201,10 @@ def run_smoke_test(dataset: dict, out_dir: Path) -> None:
         do_resize=True,
         do_normalize=True,
         num_labels=1,  # single class: filament
+        ignore_index=0,  # background id in instance_map is 0; must be dropped
+        # from all_labels before the instance_id_to_semantic_id lookup, or
+        # convert_segmentation_map_to_binary_masks tries to look up id 0
+        # (background) in a mapping that only has real instance ids.
     )
     model = Mask2FormerForUniversalSegmentation.from_pretrained(
         BACKBONE,
@@ -192,22 +216,45 @@ def run_smoke_test(dataset: dict, out_dir: Path) -> None:
     image = cv2.imread(densest["image_path"])
     if image is None:
         raise RuntimeError(f"could not read {densest['image_path']}")
+    height, width = image.shape[:2]
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
-    masks = [
-        np.zeros((image.shape[0], image.shape[1]), dtype=np.uint8)
-        for _ in densest["annotations"]
-    ]
-    # NOTE: actual polygon/RLE-to-mask decode wired at full-run time via
-    # src.rle / pycocotools; smoke test only needs realistic tensor shapes
-    # and instance COUNT to reproduce V18's failure mode if it recurs.
+    # Mask2FormerImageProcessor expects ONE single-channel instance-ID map per
+    # image (background id = 0), plus instance_id_to_semantic_id -- NOT a list
+    # of per-instance binary masks. Burn each decoded annotation mask into a
+    # shared canvas under its own instance id (ids start at 1; 0 stays
+    # background), decoding REAL annotation polygons/RLE (same path as
+    # scripts/audit_annotation_rasterization.py's mask_utils.frPyObjects), not
+    # placeholders -- realistic per-pixel content plus the real instance COUNT
+    # is what makes this probe trustworthy.
+    instance_map = np.zeros((height, width), dtype=np.int32)
+    instance_id_to_semantic_id = {}
+    for instance_id, ann in enumerate(densest["annotations"], start=1):
+        rle = mask_utils.merge(mask_utils.frPyObjects(ann["segmentation"], height, width))
+        decoded = mask_utils.decode(rle).astype(bool)
+        instance_map[decoded] = instance_id
+        instance_id_to_semantic_id[instance_id] = 0  # single class: filament
 
-    inputs = processor(
+    raw_inputs = processor(
         images=[image] * BATCH_SIZE,
-        segmentation_maps=[masks] * BATCH_SIZE if masks else None,
+        segmentation_maps=[instance_map] * BATCH_SIZE,
+        instance_id_to_semantic_id=instance_id_to_semantic_id,
         return_tensors="pt",
     )
-    inputs = {k: v.cuda() if hasattr(v, "cuda") else v for k, v in inputs.items()}
+    inputs = {}
+    for key, value in raw_inputs.items():
+        if hasattr(value, "cuda"):
+            inputs[key] = value.cuda()
+        elif isinstance(value, list) and value and hasattr(value[0], "cuda"):
+            # mask_labels / class_labels are lists of per-image tensors (they
+            # don't share a common size across images, so encode_inputs can't
+            # batch them into one tensor) -- .cuda() must be applied per
+            # element, not to the list itself, or they silently stay on CPU
+            # and grid_sample raises a cuda/cpu device mismatch deep in the
+            # Mask2Former loss.
+            inputs[key] = [item.cuda() for item in value]
+        else:
+            inputs[key] = value
 
     torch.cuda.reset_peak_memory_stats()
     with torch.autocast("cuda", dtype=torch.float16):
@@ -235,10 +282,238 @@ def run_smoke_test(dataset: dict, out_dir: Path) -> None:
     print("Smoke test cleared T4 memory budget. Safe to launch full run.")
 
 
+# ---------------------------------------------------------------------------
+# Full training (only reachable after --smoke has cleared the memory budget)
+# ---------------------------------------------------------------------------
+
+EPOCHS = 20
+LR = 1e-4
+WEIGHT_DECAY = 1e-4
+MASK_THRESHOLD = 0.5
+PQ_IOU_THRESHOLD = 0.5
+
+
+def _load_instance_map(record: dict) -> tuple:
+    """Decode one record's REAL annotation polygons/RLE into a single
+    instance-ID canvas + instance_id_to_semantic_id, same construction as
+    run_smoke_test but for an arbitrary record instead of only the densest
+    training image."""
+    from pycocotools import mask as mask_utils
+    import cv2
+    import numpy as np
+
+    image = cv2.imread(record["image_path"])
+    if image is None:
+        raise RuntimeError(f"could not read {record['image_path']}")
+    height, width = image.shape[:2]
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    instance_map = np.zeros((height, width), dtype=np.int32)
+    instance_id_to_semantic_id = {}
+    for instance_id, ann in enumerate(record["annotations"], start=1):
+        rle = mask_utils.merge(mask_utils.frPyObjects(ann["segmentation"], height, width))
+        decoded = mask_utils.decode(rle).astype(bool)
+        instance_map[decoded] = instance_id
+        instance_id_to_semantic_id[instance_id] = 0
+    return image, instance_map, instance_id_to_semantic_id
+
+
+def _batches(records: list, batch_size: int):
+    for start in range(0, len(records), batch_size):
+        yield records[start:start + batch_size]
+
+
+def train_one_epoch(model, processor, train_records, optimizer, batch_size, grad_accum, device):
+    import torch
+
+    model.train()
+    total_loss, n_batches = 0.0, 0
+    optimizer.zero_grad()
+    for step, batch in enumerate(_batches(train_records, batch_size)):
+        images, instance_maps, id_maps = [], [], []
+        for record in batch:
+            image, instance_map, id_map = _load_instance_map(record)
+            images.append(image)
+            instance_maps.append(instance_map)
+            id_maps.append(id_map)
+        raw_inputs = processor(
+            images=images, segmentation_maps=instance_maps,
+            instance_id_to_semantic_id=id_maps, ignore_index=0,
+            size={"height": IMG_SIZE_TRAIN, "width": IMG_SIZE_TRAIN},
+            return_tensors="pt",
+        )
+        inputs = {}
+        for key, value in raw_inputs.items():
+            if hasattr(value, "to"):
+                inputs[key] = value.to(device)
+            elif isinstance(value, list) and value and hasattr(value[0], "to"):
+                inputs[key] = [item.to(device) for item in value]
+            else:
+                inputs[key] = value
+
+        with torch.autocast("cuda", dtype=torch.float16):
+            outputs = model(**inputs)
+            loss = outputs.loss / grad_accum
+        loss.backward()
+        if (step + 1) % grad_accum == 0:
+            optimizer.step()
+            optimizer.zero_grad()
+        total_loss += outputs.loss.item()
+        n_batches += 1
+    optimizer.step()  # flush any partial accumulation window at epoch end
+    optimizer.zero_grad()
+    return total_loss / max(n_batches, 1)
+
+
+def predict_instances(model, processor, image, device, infer_size, mask_threshold=MASK_THRESHOLD):
+    """Run inference on one image, resized to infer_size, and return a list
+    of (binary_mask_at_infer_size, score) pairs above mask_threshold."""
+    import torch
+
+    with torch.no_grad():
+        inputs = processor(
+            images=[image], size={"height": infer_size, "width": infer_size}, return_tensors="pt",
+        )
+        inputs = {k: v.to(device) for k, v in inputs.items()}
+        with torch.autocast("cuda", dtype=torch.float16):
+            outputs = model(**inputs)
+        result = processor.post_process_instance_segmentation(
+            outputs, threshold=mask_threshold, target_sizes=[(infer_size, infer_size)],
+        )[0]
+    masks, scores = [], []
+    segmentation = result["segmentation"].cpu().numpy()
+    for segment in result["segments_info"]:
+        masks.append(segmentation == segment["id"])
+        scores.append(float(segment["score"]))
+    return masks, scores
+
+
+def evaluate_pq(model, processor, records, device, infer_size):
+    """Direct IoU-matrix PQ, matching kaggle_inference/optimize_inference.py's
+    pq_counts/pq_value exactly (not the RLE/DataFrame path in src/pq_eval.py,
+    which is for scoring already-exported submission CSVs) -- avoids an RLE
+    round-trip during in-training evaluation while staying numerically
+    identical: same IoU>0.5 hit rule, same tp/fp/fn accounting."""
+    from pycocotools import mask as mask_utils
+    import numpy as np
+
+    model.eval()
+    total_tp_iou, total_tp, total_fp, total_fn = 0.0, 0, 0, 0
+    for record in records:
+        image, gt_instance_map, _ = _load_instance_map(record)
+        height, width = gt_instance_map.shape
+        gt_ids = [i for i in np.unique(gt_instance_map) if i != 0]
+        gt_masks = [gt_instance_map == gid for gid in gt_ids]
+
+        pred_masks, _ = predict_instances(model, processor, image, device, infer_size)
+        # Predictions come back at infer_size; GT is at native resolution --
+        # resize predictions up to match before computing IoU, same
+        # convention every prior version uses (predict at a working
+        # resolution, score against native-resolution GT).
+        if infer_size != height or infer_size != width:
+            import cv2
+            pred_masks = [
+                cv2.resize(mask.astype(np.uint8), (width, height), interpolation=cv2.INTER_NEAREST).astype(bool)
+                for mask in pred_masks
+            ]
+
+        n_gt, n_pred = len(gt_masks), len(pred_masks)
+        if n_gt == 0:
+            total_fp += n_pred
+            continue
+        if n_pred == 0:
+            total_fn += n_gt
+            continue
+
+        gt_rles = mask_utils.encode(np.asfortranarray(np.stack(gt_masks, axis=-1).astype(np.uint8)))
+        pred_rles = mask_utils.encode(np.asfortranarray(np.stack(pred_masks, axis=-1).astype(np.uint8)))
+        iou = mask_utils.iou(pred_rles, gt_rles, [0] * n_gt)  # [n_pred, n_gt]
+        iou = np.asarray(iou).T  # -> [n_gt, n_pred], matching pq_counts' convention
+        hits = iou > PQ_IOU_THRESHOLD
+        total_tp_iou += float(iou[hits].sum())
+        total_tp += int(hits.sum())
+        total_fp += int((~hits.any(axis=0)).sum())
+        total_fn += int((~hits.any(axis=1)).sum())
+
+    denominator = total_tp + 0.5 * (total_fp + total_fn)
+    pq = float(total_tp_iou / denominator) if denominator else 0.0
+    return dict(pq=pq, tp_iou=total_tp_iou, tp=total_tp, fp=total_fp, fn=total_fn)
+
+
+def run_full_training(dataset: dict, out_dir: Path) -> dict:
+    import torch
+
+    if not torch.cuda.is_available():
+        raise RuntimeError("CUDA not available -- full training must run on the GPU VM")
+
+    from transformers import Mask2FormerForUniversalSegmentation, Mask2FormerImageProcessor
+
+    torch.manual_seed(SEED)
+    device = torch.device("cuda")
+
+    processor = Mask2FormerImageProcessor(
+        do_resize=True, do_normalize=True, num_labels=1, ignore_index=0,
+    )
+    model = Mask2FormerForUniversalSegmentation.from_pretrained(
+        BACKBONE, num_labels=1, num_queries=NUM_QUERIES, ignore_mismatched_sizes=True,
+    ).to(device)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=LR, weight_decay=WEIGHT_DECAY)
+
+    out_dir.mkdir(parents=True, exist_ok=True)
+    history = []
+    best_tune_pq, best_state_path = -1.0, out_dir / "best_model"
+    import time
+
+    for epoch in range(1, EPOCHS + 1):
+        epoch_start = time.monotonic()
+        train_loss = train_one_epoch(
+            model, processor, dataset["train"], optimizer, BATCH_SIZE, GRAD_ACCUM, device,
+        )
+        tune_result = evaluate_pq(model, processor, dataset["tune"], device, IMG_SIZE_INFER)
+        epoch_seconds = time.monotonic() - epoch_start
+        entry = dict(epoch=epoch, train_loss=train_loss, tune_pq=tune_result["pq"],
+                     tune_tp=tune_result["tp"], tune_fp=tune_result["fp"], tune_fn=tune_result["fn"],
+                     epoch_seconds=epoch_seconds)
+        history.append(entry)
+        print(f"epoch={epoch}/{EPOCHS} train_loss={train_loss:.4f} "
+              f"tune_pq={tune_result['pq']:.6f} (tp={tune_result['tp']} "
+              f"fp={tune_result['fp']} fn={tune_result['fn']}) "
+              f"epoch_seconds={epoch_seconds:.1f}", flush=True)
+        (out_dir / "training_history.json").write_text(json.dumps(history, indent=2))
+        if tune_result["pq"] > best_tune_pq:
+            best_tune_pq = tune_result["pq"]
+            model.save_pretrained(best_state_path)
+
+    # Reload the best-tune checkpoint before the final audit-set evaluation,
+    # so the reported audit PQ corresponds to the same weights SUBMIT_BAR/
+    # PROMOTION_GATE are checked against, not whatever the last epoch left in
+    # memory (mirrors the project's existing best-checkpoint-by-tune-PQ
+    # selection convention from the V6-V18 refiner runs).
+    from transformers import Mask2FormerForUniversalSegmentation as _M2F
+    model = _M2F.from_pretrained(best_state_path).to(device)
+    audit_result = evaluate_pq(model, processor, dataset["audit"], device, IMG_SIZE_INFER)
+
+    result = dict(
+        best_tune_pq=best_tune_pq, audit_pq=audit_result["pq"],
+        audit_tp=audit_result["tp"], audit_fp=audit_result["fp"], audit_fn=audit_result["fn"],
+        submit_bar_tune=SUBMIT_BAR_TUNE, promotion_gate_tune=PROMOTION_GATE_TUNE,
+        cleared_submit_bar=best_tune_pq >= SUBMIT_BAR_TUNE,
+        cleared_promotion_gate=best_tune_pq >= PROMOTION_GATE_TUNE,
+        history=history,
+    )
+    (out_dir / "v19_full_result.json").write_text(json.dumps(result, indent=2))
+    print(f"FINAL: best_tune_pq={best_tune_pq:.6f} audit_pq={audit_result['pq']:.6f} "
+          f"cleared_submit_bar={result['cleared_submit_bar']} "
+          f"cleared_promotion_gate={result['cleared_promotion_gate']}", flush=True)
+    return result
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--smoke", action="store_true", help="Run memory/shape probe only")
     parser.add_argument("--full", action="store_true", help="Run full training")
+    parser.add_argument("--epochs", type=int, default=None,
+                        help="Override EPOCHS (e.g. for a short timing probe before "
+                             "committing GPU quota to a full run)")
     parser.add_argument("--data-root", type=Path, default=REPO_ROOT / "data" / "raw")
     parser.add_argument("--out-dir", type=Path, default=REPO_ROOT / "outputs" / "v19_mask2former")
     args = parser.parse_args()
@@ -246,15 +521,19 @@ def main() -> None:
     if not args.smoke and not args.full:
         parser.error("pass --smoke or --full")
 
+    if args.epochs is not None:
+        global EPOCHS
+        EPOCHS = args.epochs
+
     ensure_environment()
-    ensure_data(args.data_root)
+    data_root = ensure_data(args.data_root)
 
     coco_path = (
-        args.data_root / "filament-segmentation-2026" / "MAGFiLO_1.0_Kaggle_2026"
+        data_root / "filament-segmentation-2026" / "MAGFiLO_1.0_Kaggle_2026"
         / "train" / "MAGFiLO_1.0_Annotations_kaggle2026_train.json"
     )
     image_dir = (
-        args.data_root / "filament-segmentation-2026" / "MAGFiLO_1.0_Kaggle_2026"
+        data_root / "filament-segmentation-2026" / "MAGFiLO_1.0_Kaggle_2026"
         / "train" / "train_images"
     )
     split = load_split(coco_path)
@@ -266,13 +545,7 @@ def main() -> None:
         run_smoke_test(dataset, args.out_dir)
         return
 
-    raise NotImplementedError(
-        "Full training loop intentionally not written until the smoke test "
-        "passes on the actual VM -- writing the training loop against "
-        "unverified memory assumptions is exactly how V18 lost ~1,550 GPU-s. "
-        "Run --smoke first; this block gets filled in immediately after with "
-        "confirmed batch size / query count / backbone choice."
-    )
+    run_full_training(dataset, args.out_dir)
 
 
 if __name__ == "__main__":
