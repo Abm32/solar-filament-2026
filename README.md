@@ -2,15 +2,17 @@
 
 Repository for the Kaggle Solar Filament Segmentation Challenge 2026.
 
-**Resume here (updated 2026-09-09):** the current public best is **0.39**,
-confirmed by **four** independent submissions: V17 `mr1_iou030/t0.45_c0.30`
-(submission **56103401**, [package](submission_ready/v17_2026-09-08/README.md)),
-V13 `t0.45_c0.30` (**56076685**, [package](submission_ready/v13_2026-09-07/README.md)),
-V11 `proposal_centered_e4` (**56049359**, [package](submission_ready/v11_2026-09-06/README.md))
-and V11 `gt_centered_e4` (**56050554**,
-[package](submission_ready/v11_gt_centered_2026-09-06/README.md)). Do not upload
-any of them again. Deadline 2026-11-15. Full state and the current
-recommendation: [`../RESUME_TOMORROW.md`](../RESUME_TOMORROW.md).
+**Resume here (updated 2026-09-10):** the current public best is **0.39**. V19
+(Mask2Former, the "genuinely different detector family" identified as the
+project's last untried lever) ran a full 20-epoch training to completion and
+**failed hard**: best tune PQ 0.153578 against a SUBMIT_BAR of 0.448703 — not a
+close miss, and nothing was submitted (see E029 in
+[experiments.md](docs/experiments.md)). Every lever this project has identified
+across 19 versions has now been tried or explicitly closed by measurement, and
+none has moved the public score off 0.39. The four accepted 0.39 submissions
+below remain the best result; do not upload any of them again. Deadline
+2026-11-15. Full state and the current recommendation:
+[`../RESUME_TOMORROW.md`](../RESUME_TOMORROW.md).
 
 **The most important current result: local tune PQ has stopped predicting the
 public score, and the model the project was steering by is falsified (E027).**

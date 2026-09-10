@@ -60,6 +60,48 @@ def test_protocol_constants_match_v19_design_doc():
     assert v19.SEED == 42
 
 
+# --- E029: pin the returned full-run result against the predeclared bars ---
+
+FULL_RESULT = (
+    ROOT / "outputs/kaggle_v19_full_pull/v19_mask2former/v19_full_result.json"
+)
+
+requires_full_result = pytest.mark.skipif(
+    not FULL_RESULT.exists(), reason="v19 full-run artifact not pulled locally"
+)
+
+
+@requires_full_result
+def test_e029_full_run_did_not_clear_submit_bar():
+    """Pins E029 (docs/experiments.md, 2026-09-10): the full 20-epoch run
+    completed without a resource failure but scored far below SUBMIT_BAR, so
+    nothing was authorized for export. If this artifact is ever refreshed by
+    a rerun, this test must be revisited deliberately, not silently pass a
+    different run's numbers under the same name."""
+    result = json.loads(FULL_RESULT.read_text())
+
+    assert result["submit_bar_tune"] == pytest.approx(0.448703)
+    assert result["promotion_gate_tune"] == pytest.approx(0.55)
+    assert result["cleared_submit_bar"] is False
+    assert result["cleared_promotion_gate"] is False
+
+    # Best epoch (13 of 20) tune PQ, roughly a third of the bar -- not a
+    # close miss.
+    assert result["best_tune_pq"] == pytest.approx(0.153578, abs=1e-5)
+    assert result["audit_pq"] == pytest.approx(0.150346, abs=1e-5)
+    assert result["best_tune_pq"] < result["submit_bar_tune"] * 0.5
+
+    history = result["history"]
+    assert len(history) == 20
+    pq_values = [epoch["tune_pq"] for epoch in history]
+    assert max(pq_values) == pytest.approx(result["best_tune_pq"], abs=1e-5)
+
+    # FP volume was structurally out of proportion to the YOLO control (V17:
+    # FP 211-306) at every epoch, not just a noisy best-case outlier.
+    fp_values = [epoch["tune_fp"] for epoch in history]
+    assert min(fp_values) > 1000
+
+
 # --- the split must reproduce optimize_inference.validation_split() exactly ---
 
 def test_split_algorithm_matches_optimize_inference_validation_split_shape():
