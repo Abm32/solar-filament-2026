@@ -34,7 +34,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(REPO_ROOT / "src"))
+sys.path.insert(0, str(REPO_ROOT))
 
 # ---------------------------------------------------------------------------
 # Predeclared protocol constants (docs/v19_design_2026-09-09.md)
@@ -66,7 +66,13 @@ def ensure_environment() -> None:
     """
     import os
 
-    packages = ["transformers==4.44.2", "pycocotools==2.0.8"]
+    packages = ["transformers==4.44.2", "pycocotools==2.0.8", "scipy==1.15.3"]
+    # scipy is required by Mask2FormerLoss's Hungarian-matching criterion
+    # (transformers.models.mask2former.modeling_mask2former imports
+    # scipy.optimize.linear_sum_assignment) but was missing from both this
+    # list and the Kaggle kernel image's pre-installed set; Kaggle's base
+    # image happens to ship scipy already, which is why this was invisible
+    # until running on a standalone VM.
     if not os.environ.get("KAGGLE_KERNEL_RUN_TYPE"):
         packages = [
             "torch==2.4.1",
