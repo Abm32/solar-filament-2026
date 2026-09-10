@@ -250,6 +250,200 @@ def test_unknown_mode_is_rejected():
         prepare_v19.stage(ROOT, Path("/tmp/whatever"), mode="bogus")
 
 
+# --- E029 regression fixes: eval resolution + LR warmup/decay ---
+
+def test_full_training_evaluates_model_selection_at_train_resolution(monkeypatch):
+    """E029's run evaluated tune/audit PQ at IMG_SIZE_INFER (2048) -- 2x the
+    IMG_SIZE_TRAIN (1024) the model actually trained at -- via plain
+    single-shot upsampling rather than the design doc's sliding-window
+    inference. That scale mismatch on every single epoch, including the one
+    used for best-checkpoint selection, is the most likely driver of the
+    outsized FP volume and the non-converging PQ trace. Pin that
+    run_full_training now evaluates at IMG_SIZE_TRAIN for both tune and
+    audit, and that IMG_SIZE_INFER is untouched (reserved for a separate
+    submission-time sliding-window pass, not per-epoch selection)."""
+    eval_resolutions = []
+
+    class _StubProcessor:
+        pass
+
+    class _StubModel:
+        def eval(self):
+            pass
+
+        def to(self, device):
+            return self
+
+        def save_pretrained(self, path):
+            pass
+
+        def parameters(self):
+            return []
+
+    def fake_evaluate_pq(model, processor, records, device, infer_size):
+        eval_resolutions.append(infer_size)
+        return {"pq": 0.1, "tp_iou": 0.0, "tp": 0, "fp": 0, "fn": 0}
+
+    def fake_train_one_epoch(model, processor, records, optimizer, batch_size, grad_accum, device,
+                              scheduler=None):
+        return 1.0
+
+    torch_stub = type(sys)("torch")
+    torch_stub.cuda = type(sys)("cuda")
+    torch_stub.cuda.is_available = lambda: True
+    torch_stub.device = lambda name: name
+    torch_stub.manual_seed = lambda seed: None
+
+    class _StubOptim:
+        def __init__(self, *a, **k):
+            pass
+
+    class _StubLambdaLR:
+        def __init__(self, optimizer, lr_lambda):
+            self.lr_lambda = lr_lambda
+
+        def step(self):
+            pass
+
+    torch_stub.optim = type(sys)("optim")
+    torch_stub.optim.AdamW = lambda params, lr, weight_decay: _StubOptim()
+    torch_stub.optim.lr_scheduler = type(sys)("lr_scheduler")
+    torch_stub.optim.lr_scheduler.LambdaLR = _StubLambdaLR
+    monkeypatch.setitem(sys.modules, "torch", torch_stub)
+
+    transformers_stub = type(sys)("transformers")
+    transformers_stub.Mask2FormerForUniversalSegmentation = type(
+        "M2F", (), {"from_pretrained": staticmethod(lambda *a, **k: _StubModel())},
+    )
+    transformers_stub.Mask2FormerImageProcessor = lambda **k: _StubProcessor()
+    monkeypatch.setitem(sys.modules, "transformers", transformers_stub)
+
+    monkeypatch.setattr(v19, "train_one_epoch", fake_train_one_epoch)
+    monkeypatch.setattr(v19, "evaluate_pq", fake_evaluate_pq)
+    monkeypatch.setattr(v19, "EPOCHS", 2)
+
+    dataset = {
+        "train": [{"file_name": f"t{i}"} for i in range(4)],
+        "tune": [{"file_name": "tune0"}],
+        "audit": [{"file_name": "audit0"}],
+    }
+    result = v19.run_full_training(dataset, Path("/tmp/v19_test_out"))
+
+    # One tune eval per epoch (2) plus one final audit eval = 3 calls, ALL at
+    # IMG_SIZE_TRAIN, never at IMG_SIZE_INFER.
+    assert eval_resolutions == [v19.IMG_SIZE_TRAIN, v19.IMG_SIZE_TRAIN, v19.IMG_SIZE_TRAIN]
+    assert v19.IMG_SIZE_INFER not in eval_resolutions
+    assert result["eval_resolution"] == v19.IMG_SIZE_TRAIN
+
+
+def test_lr_schedule_warms_up_then_decays_to_near_zero():
+    """The scheduler built inside run_full_training must ramp from a low
+    value up to 1.0x base LR over the warmup window, then decay smoothly
+    (cosine) back toward 0 by the final step -- not stay flat at 1e-4 for
+    all 20 epochs as E029's run did."""
+    import math
+
+    steps_per_epoch = 10
+    epochs = 20
+    total_steps = steps_per_epoch * epochs
+    warmup_steps = max(1, round(total_steps * v19.WARMUP_FRACTION))
+
+    def lr_lambda(step):
+        if step < warmup_steps:
+            return (step + 1) / warmup_steps
+        progress = (step - warmup_steps) / max(1, total_steps - warmup_steps)
+        return 0.5 * (1.0 + math.cos(math.pi * min(progress, 1.0)))
+
+    # Ramps up during warmup.
+    assert lr_lambda(0) < lr_lambda(warmup_steps - 1)
+    assert lr_lambda(warmup_steps - 1) == pytest.approx(1.0, abs=0.05)
+    # Decays after warmup, ending near zero.
+    assert lr_lambda(warmup_steps) > lr_lambda(total_steps - 1)
+    assert lr_lambda(total_steps - 1) < 0.05
+    # Never exceeds the base multiplier.
+    assert max(lr_lambda(s) for s in range(0, total_steps, 7)) <= 1.0 + 1e-9
+
+
+def test_train_one_epoch_steps_scheduler_on_optimizer_step_boundaries():
+    """scheduler.step() must fire exactly once per optimizer.step() (i.e. once
+    per GRAD_ACCUM micro-batches, plus the end-of-epoch flush) -- not once per
+    micro-batch, which would make the schedule run GRAD_ACCUM times too fast."""
+    stub_module = type(sys)("torch_stub_for_scheduler_test")
+
+    class _Tensor:
+        def item(self):
+            return 1.0
+
+        def backward(self):
+            pass
+
+        def __truediv__(self, other):
+            return self
+
+    class _Outputs:
+        loss = _Tensor()
+
+    class _StubModel:
+        def train(self):
+            pass
+
+        def __call__(self, **kwargs):
+            return _Outputs()
+
+    class _NullContext:
+        def __enter__(self):
+            return None
+
+        def __exit__(self, *a):
+            return False
+
+    stub_module.autocast = lambda device, dtype=None: _NullContext()
+    stub_module.float16 = "float16"
+    monkeypatch_stack = []
+
+    import types as _types
+    real_torch = sys.modules.get("torch")
+    sys.modules["torch"] = stub_module
+    try:
+        step_calls = []
+
+        class _StubOptimizer:
+            def step(self):
+                pass
+
+            def zero_grad(self):
+                pass
+
+        class _StubScheduler:
+            def step(self):
+                step_calls.append(1)
+
+        class _StubProcessor:
+            def __call__(self, **kwargs):
+                return {}
+
+        monkeypatch_target = v19._load_instance_map
+        v19._load_instance_map = lambda record: (None, None, None)
+        try:
+            records = [{"file_name": f"r{i}"} for i in range(9)]  # 9 records
+            v19.train_one_epoch(
+                _StubModel(), _StubProcessor(), records, _StubOptimizer(),
+                batch_size=1, grad_accum=4, device="cpu", scheduler=_StubScheduler(),
+            )
+        finally:
+            v19._load_instance_map = monkeypatch_target
+    finally:
+        if real_torch is not None:
+            sys.modules["torch"] = real_torch
+        else:
+            del sys.modules["torch"]
+
+    # 9 micro-batches at batch_size=1, grad_accum=4: optimizer.step() fires at
+    # micro-batch index 3, 7 (2 in-loop steps), plus the unconditional
+    # end-of-epoch flush = 3 scheduler.step() calls.
+    assert len(step_calls) == 3
+
+
 # --- full training loop: PQ accounting must match optimize_inference.py's ---
 # --- pq_counts/pq_value exactly (same IoU>0.5 hit rule, same tp/fp/fn) ------
 

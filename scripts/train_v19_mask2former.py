@@ -291,6 +291,12 @@ LR = 1e-4
 WEIGHT_DECAY = 1e-4
 MASK_THRESHOLD = 0.5
 PQ_IOU_THRESHOLD = 0.5
+WARMUP_FRACTION = 0.05  # linear warmup over the first 5% of optimizer steps,
+# then cosine decay to 0 -- see docs/v19_regression_2026-09-10.md. Flat
+# lr=1e-4 for 20 epochs on a partially-reinitialized pretrained transformer
+# (2-class head reinit, backbone pretrained) produced a loss plateau with an
+# oscillating, non-converging tune PQ (E029); warmup avoids destabilizing the
+# pretrained backbone weights in the first few hundred steps.
 
 
 def _load_instance_map(record: dict) -> tuple:
@@ -322,7 +328,8 @@ def _batches(records: list, batch_size: int):
         yield records[start:start + batch_size]
 
 
-def train_one_epoch(model, processor, train_records, optimizer, batch_size, grad_accum, device):
+def train_one_epoch(model, processor, train_records, optimizer, batch_size, grad_accum, device,
+                     scheduler=None):
     import torch
 
     model.train()
@@ -357,10 +364,14 @@ def train_one_epoch(model, processor, train_records, optimizer, batch_size, grad
         if (step + 1) % grad_accum == 0:
             optimizer.step()
             optimizer.zero_grad()
+            if scheduler is not None:
+                scheduler.step()
         total_loss += outputs.loss.item()
         n_batches += 1
     optimizer.step()  # flush any partial accumulation window at epoch end
     optimizer.zero_grad()
+    if scheduler is not None:
+        scheduler.step()
     return total_loss / max(n_batches, 1)
 
 
@@ -458,6 +469,25 @@ def run_full_training(dataset: dict, out_dir: Path) -> dict:
     ).to(device)
     optimizer = torch.optim.AdamW(model.parameters(), lr=LR, weight_decay=WEIGHT_DECAY)
 
+    # Linear warmup -> cosine decay across the full run's optimizer steps
+    # (not epochs): flat lr=1e-4 for 20 epochs on a mostly-pretrained
+    # backbone + freshly-reinitialized 2-class head produced a loss plateau
+    # with an oscillating, non-converging tune PQ (E029, epoch range
+    # 0.075-0.154 with no visible trend). One optimizer step happens every
+    # GRAD_ACCUM micro-batches, matching train_one_epoch's step condition.
+    steps_per_epoch = max(1, -(-len(dataset["train"]) // BATCH_SIZE) // GRAD_ACCUM)
+    total_steps = max(1, steps_per_epoch * EPOCHS)
+    warmup_steps = max(1, round(total_steps * WARMUP_FRACTION))
+
+    def lr_lambda(step: int) -> float:
+        if step < warmup_steps:
+            return (step + 1) / warmup_steps
+        import math
+        progress = (step - warmup_steps) / max(1, total_steps - warmup_steps)
+        return 0.5 * (1.0 + math.cos(math.pi * min(progress, 1.0)))
+
+    scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda)
+
     out_dir.mkdir(parents=True, exist_ok=True)
     history = []
     best_tune_pq, best_state_path = -1.0, out_dir / "best_model"
@@ -467,8 +497,20 @@ def run_full_training(dataset: dict, out_dir: Path) -> dict:
         epoch_start = time.monotonic()
         train_loss = train_one_epoch(
             model, processor, dataset["train"], optimizer, BATCH_SIZE, GRAD_ACCUM, device,
+            scheduler=scheduler,
         )
-        tune_result = evaluate_pq(model, processor, dataset["tune"], device, IMG_SIZE_INFER)
+        # Model selection MUST evaluate at the resolution the model was
+        # trained at (IMG_SIZE_TRAIN), not IMG_SIZE_INFER. E029's run
+        # evaluated every epoch's tune PQ at 2048 -- 2x IMG_SIZE_TRAIN=1024 --
+        # via plain single-shot upsampling, not the sliding-window inference
+        # the design doc specified. That scale mismatch, on every single
+        # epoch, is the most likely driver of both the outsized FP volume
+        # (5-10x the YOLO control) and the non-converging PQ trace: the
+        # metric used to pick the "best" checkpoint was never measuring the
+        # model at a scale it had seen during training. 2048 sliding-window
+        # inference belongs at final-submission time only (see
+        # docs/v19_regression_2026-09-10.md), not in the per-epoch loop.
+        tune_result = evaluate_pq(model, processor, dataset["tune"], device, IMG_SIZE_TRAIN)
         epoch_seconds = time.monotonic() - epoch_start
         entry = dict(epoch=epoch, train_loss=train_loss, tune_pq=tune_result["pq"],
                      tune_tp=tune_result["tp"], tune_fp=tune_result["fp"], tune_fn=tune_result["fn"],
@@ -487,10 +529,15 @@ def run_full_training(dataset: dict, out_dir: Path) -> dict:
     # so the reported audit PQ corresponds to the same weights SUBMIT_BAR/
     # PROMOTION_GATE are checked against, not whatever the last epoch left in
     # memory (mirrors the project's existing best-checkpoint-by-tune-PQ
-    # selection convention from the V6-V18 refiner runs).
+    # selection convention from the V6-V18 refiner runs). Audit is evaluated
+    # at IMG_SIZE_TRAIN too, for the same reason tune is -- comparing
+    # SUBMIT_BAR/PROMOTION_GATE against a metric computed at training
+    # resolution keeps model-selection and gate-checking internally
+    # consistent. A separate IMG_SIZE_INFER (2048, sliding-window) pass is
+    # deferred to submission-export time, once/if SUBMIT_BAR clears.
     from transformers import Mask2FormerForUniversalSegmentation as _M2F
     model = _M2F.from_pretrained(best_state_path).to(device)
-    audit_result = evaluate_pq(model, processor, dataset["audit"], device, IMG_SIZE_INFER)
+    audit_result = evaluate_pq(model, processor, dataset["audit"], device, IMG_SIZE_TRAIN)
 
     result = dict(
         best_tune_pq=best_tune_pq, audit_pq=audit_result["pq"],
@@ -498,6 +545,7 @@ def run_full_training(dataset: dict, out_dir: Path) -> dict:
         submit_bar_tune=SUBMIT_BAR_TUNE, promotion_gate_tune=PROMOTION_GATE_TUNE,
         cleared_submit_bar=best_tune_pq >= SUBMIT_BAR_TUNE,
         cleared_promotion_gate=best_tune_pq >= PROMOTION_GATE_TUNE,
+        eval_resolution=IMG_SIZE_TRAIN,
         history=history,
     )
     (out_dir / "v19_full_result.json").write_text(json.dumps(result, indent=2))
