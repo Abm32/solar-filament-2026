@@ -1,0 +1,16 @@
+{
+  "file": "outputs/kaggle_v17_full/submission.csv",
+  "sha256": "87b22b056ca830527664a92db8daa76e2c93660cd232ae45346b28d4c1cb922b",
+  "rows": 1215,
+  "populated_images": 177,
+  "missing_images": [
+    "20170708164010Mh",
+    "20200310113230Ch",
+    "20211214174010Mh"
+  ],
+  "median_instances_populated": 7.0,
+  "min_mask_area": 20,
+  "median_mask_area": 1319.0,
+  "non_overlap": true,
+  "full_rle_decode": true
+}

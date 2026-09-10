@@ -1,0 +1,50 @@
+{
+  "experiment": "v13_ea_flags_x_v11_refiner",
+  "mode": "full",
+  "revision": "",
+  "trains": false,
+  "submits": false,
+  "limit": 0,
+  "arm": "proposal_centered",
+  "cell": {
+    "name": "ea_iou030",
+    "retina_masks": true,
+    "agnostic_nms": true,
+    "iou": 0.3
+  },
+  "control_cell": {
+    "name": "frozen_control",
+    "retina_masks": true,
+    "agnostic_nms": true,
+    "iou": 0.7
+  },
+  "v11_source_run": "abhimanyu122/solar-filament-v11-refiner",
+  "v11_run_identity": "7c45acf26f210acce00f1bff581288bc2eb6121485237c7c028588d1de69164c",
+  "v11_checkpoint_sha256": "fae496b9d00819f49c5278e81e41a7917b31d18ea80f827e162746d840d14cd2",
+  "detector_sha256": "0abf568f5ffa504979a44c6ac4997c231adc38cb3c6d998461295c4dad3a38b8",
+  "refiner_sha256": "8d00805318233a4196c706c1ec4eba9136ca1cb80d62298f082e82f7a2d01fb1",
+  "provenance_sha256": "ceb09f980d5be195db35f2954c26fd19ea7ffc0f318b2bae5b7c803504b17122",
+  "annotation_sha256": "5da9e92b5a1a1947fd5d57adb6688269625c48ec1ef884daf2a01618c9ed54a1",
+  "expected_control_sha256": "bf11690e9bcce73b0c627096cc1198d9fb0916650f7fa4b3f08f1167bb76bde9",
+  "cached_images": 321,
+  "cache_inventory_sha256": "2dce7e204dcbd29818e342280e46e42d112744434fd5313d0b110a847803eaac",
+  "declared_candidates": 42,
+  "submit_bar": {
+    "min_tune_pq": 0.4367255551286259,
+    "min_audit_pq": 0.4501295960589769,
+    "basis": "better parent's tune (E-A 0.436726); audit floor is E015"
+  },
+  "promotion_gate": {
+    "required_tune_delta_vs_v11": 0.003,
+    "require_audit_at_least_v11": true
+  },
+  "module_sha256": {
+    "optimize_inference": "2427e868c0d59f126ccd505e738bbe71c1eb96d317e4652d3a3ce68cb9d64166",
+    "detector_tta": "17ce910252031871f136262a932bce8b4aefd054f2eb78c6942e96d345be9234",
+    "v10_quality": "376baa9c6e08f12f3d9e53f3291a964f6627d62afd52d750c1534b58ef9d8501",
+    "v11_refiner": "a0c3d4cbf676f8646516e3ef3adbfc56075f599da69492deb30fffaa29014b75",
+    "v13_compose": "f4faad8a6253e946450e5fa8df921ff5206064a7cf496b4fe8a06a040614e8e9"
+  },
+  "script_sha256": "f0b941918e4cbac99d8060152b37869663d4a819761fd5e3da343925b5a02161",
+  "note": "Composes measured E-A iou=0.3 flags with the V11 proposal_centered_e4 refiner. Regenerates iou=0.3 proposals because the frozen caches are iou=0.7. Control arm must reproduce the accepted 0.38 CSV first. Export is gated on SUBMIT_BAR; submission stays manual."
+}

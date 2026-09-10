@@ -1,0 +1,80 @@
+{
+  "experiment": "v11_export_only",
+  "source_run": "abhimanyu122/solar-filament-v11-refiner",
+  "export_identity": "ff1ade381967a39768be177fb4210c00151109212b85677aaab45b919084d56e",
+  "candidate": "v11_gt_centered_e4_refined_constrained",
+  "arm": "gt_centered",
+  "config": {
+    "arm": "gt_centered",
+    "epoch": 4,
+    "conditioned": false,
+    "mode": "refined_constrained",
+    "priority": 1
+  },
+  "frozen_tune_pq": 0.437313,
+  "checkpoint_sha256": "80c17bc1ef822de5c45b07c14770b6e9c2c7b2449aa854d0250877a8754d96d9",
+  "checkpoint_identity": {
+    "run_identity": "7c45acf26f210acce00f1bff581288bc2eb6121485237c7c028588d1de69164c",
+    "epoch": 4,
+    "cohort_sha256": "8033aec4505c654c6ca539da1ff244eda14d85f8c58d97ca6e680b23f0ab3bbe",
+    "arm_file": "gt_centered_e4.pt"
+  },
+  "gate": {
+    "promotable": false,
+    "reason": "predeclared improvement gates failed",
+    "deltas": {
+      "tune_v6": 0.005177338559703704,
+      "tune_v10": 0.003936376179929257,
+      "audit_v6": 0.004754753668608613,
+      "audit_v10": 0.0030472597663005474
+    },
+    "required_min_tune_delta_v6": 0.01
+  },
+  "promotable": false,
+  "trained_here": false,
+  "threshold": 0.4,
+  "confidence": 0.4,
+  "min_prediction_area": 20,
+  "detector_resolution": 1024,
+  "detector_views": 4,
+  "crop_views": 4,
+  "crop_size": 256,
+  "versions": {
+    "ultralytics": "8.4.138",
+    "torch": "2.10.0+cu128",
+    "torchvision": "0.25.0+cu128",
+    "pycocotools": "2.0.11",
+    "numpy": "2.0.2"
+  },
+  "complete": true,
+  "public_score": "unmeasured",
+  "automatic_submission": false,
+  "note": "Gate-failed candidate exported for measurement only; not promoted",
+  "full_control_validated": true,
+  "control_export": {
+    "file": "submission_control.csv",
+    "rows": 982,
+    "sha256": "bf11690e9bcce73b0c627096cc1198d9fb0916650f7fa4b3f08f1167bb76bde9",
+    "evaluated_images": 180,
+    "empty_images": [
+      "20170708164010Mh.jpeg",
+      "20200310113230Ch.jpeg",
+      "20200806072410Th.jpeg",
+      "20211214174010Mh.jpeg"
+    ],
+    "structural_validation": "all masks decoded, area>=20, per-image ownership disjoint"
+  },
+  "candidate_export": {
+    "file": "submission.csv",
+    "rows": 980,
+    "sha256": "97e6db03a9ad7cc1e15750d40fd4ebcdeb77504b704dd050ca9a963f73c72a6c",
+    "evaluated_images": 180,
+    "empty_images": [
+      "20170708164010Mh.jpeg",
+      "20200310113230Ch.jpeg",
+      "20200806072410Th.jpeg",
+      "20211214174010Mh.jpeg"
+    ],
+    "structural_validation": "all masks decoded, area>=20, per-image ownership disjoint"
+  }
+}

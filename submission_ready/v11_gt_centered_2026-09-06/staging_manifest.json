@@ -1,0 +1,40 @@
+{
+  "experiment": "v11_export_only",
+  "source_run": "abhimanyu122/solar-filament-v11-refiner",
+  "arm": "gt_centered",
+  "candidate": "v11_gt_centered_e4_refined_constrained",
+  "source_run_identity": "7c45acf26f210acce00f1bff581288bc2eb6121485237c7c028588d1de69164c",
+  "checkpoint_sha256": "80c17bc1ef822de5c45b07c14770b6e9c2c7b2449aa854d0250877a8754d96d9",
+  "frozen_selection": {
+    "arm": "proposal_centered",
+    "epoch": 4,
+    "conditioned": false,
+    "mode": "refined_constrained",
+    "priority": 2
+  },
+  "source_gate": {
+    "promotable": false,
+    "deltas": {
+      "tune_v6": 0.005177338559703704,
+      "tune_v10": 0.003936376179929257,
+      "audit_v6": 0.004754753668608613,
+      "audit_v10": 0.0030472597663005474
+    },
+    "reason": "predeclared improvement gates failed"
+  },
+  "promotable": false,
+  "trains": false,
+  "module_sha256": {
+    "optimize_inference": "2427e868c0d59f126ccd505e738bbe71c1eb96d317e4652d3a3ce68cb9d64166",
+    "detector_tta": "17ce910252031871f136262a932bce8b4aefd054f2eb78c6942e96d345be9234",
+    "v10_quality": "376baa9c6e08f12f3d9e53f3291a964f6627d62afd52d750c1534b58ef9d8501",
+    "v11_refiner": "a0c3d4cbf676f8646516e3ef3adbfc56075f599da69492deb30fffaa29014b75",
+    "v11_export": "0be7f3ab2b14ce373de26264a5c0067e79d219c4b30c90f6512fe8b23ea873f4"
+  },
+  "script_sha256": "af0559af9b2e3dd01b797cf41ec42f9fcfa4c9895c0deecdd9196b51543818ba",
+  "cached_images": 321,
+  "cache_inventory_sha256": "2dce7e204dcbd29818e342280e46e42d112744434fd5313d0b110a847803eaac",
+  "source_provenance_sha256": "ceb09f980d5be195db35f2954c26fd19ea7ffc0f318b2bae5b7c803504b17122",
+  "expected_control_sha256": "bf11690e9bcce73b0c627096cc1198d9fb0916650f7fa4b3f08f1167bb76bde9",
+  "note": "Measurement-only export of a gate-failed candidate; promotion still requires the original gate"
+}

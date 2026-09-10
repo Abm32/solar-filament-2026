@@ -1,0 +1,18 @@
+{
+  "file": "submission_ready/v11_gt_centered_2026-09-06/submission_v11_gt_centered.csv",
+  "sha256": "97e6db03a9ad7cc1e15750d40fd4ebcdeb77504b704dd050ca9a963f73c72a6c",
+  "rows": 980,
+  "populated_images": 176,
+  "missing_images": [
+    "20170708164010Mh",
+    "20200310113230Ch",
+    "20200806072410Th",
+    "20211214174010Mh"
+  ],
+  "median_instances_populated": 5.0,
+  "min_mask_area": 29,
+  "median_mask_area": 1530.0,
+  "non_overlap": true,
+  "full_rle_decode": true
+}
+

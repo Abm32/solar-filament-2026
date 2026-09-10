@@ -1,0 +1,118 @@
+{
+  "candidate": "v11_proposal_centered_e4_refined_constrained",
+  "config": {
+    "arm": "proposal_centered",
+    "epoch": 4,
+    "conditioned": false,
+    "mode": "refined_constrained",
+    "priority": 2
+  },
+  "selected_on": "tune global PQ only",
+  "run_identity": "7c45acf26f210acce00f1bff581288bc2eb6121485237c7c028588d1de69164c",
+  "tune_counts": {
+    "v11_frozen_control": [
+      426.54733990719626,
+      626.0,
+      211.0,
+      508.0
+    ],
+    "v11_gt_centered_e1_refined_constrained": [
+      430.3820297284374,
+      628.0,
+      207.0,
+      506.0
+    ],
+    "v11_gt_centered_e2_refined_constrained": [
+      428.29474948330886,
+      623.0,
+      212.0,
+      511.0
+    ],
+    "v11_gt_centered_e3_refined_constrained": [
+      426.6084184278248,
+      623.0,
+      212.0,
+      511.0
+    ],
+    "v11_gt_centered_e4_refined_constrained": [
+      430.53431546265045,
+      628.0,
+      207.0,
+      506.0
+    ],
+    "v11_proposal_centered_e1_refined_constrained": [
+      429.7781309824083,
+      627.0,
+      210.0,
+      507.0
+    ],
+    "v11_proposal_centered_e2_refined_constrained": [
+      428.69214778856747,
+      623.0,
+      214.0,
+      511.0
+    ],
+    "v11_proposal_centered_e3_refined_constrained": [
+      427.50444035238024,
+      625.0,
+      210.0,
+      509.0
+    ],
+    "v11_proposal_centered_e4_refined_constrained": [
+      431.21160644179463,
+      629.0,
+      206.0,
+      505.0
+    ],
+    "v11_proposal_conditioned_e1_refined_constrained": [
+      427.2403789383617,
+      628.0,
+      211.0,
+      506.0
+    ],
+    "v11_proposal_conditioned_e1_refined_free": [
+      427.4527398438712,
+      628.0,
+      211.0,
+      506.0
+    ],
+    "v11_proposal_conditioned_e2_refined_constrained": [
+      425.8186286233106,
+      624.0,
+      215.0,
+      510.0
+    ],
+    "v11_proposal_conditioned_e2_refined_free": [
+      425.9830485700509,
+      624.0,
+      215.0,
+      510.0
+    ],
+    "v11_proposal_conditioned_e3_refined_constrained": [
+      426.559978545108,
+      627.0,
+      212.0,
+      507.0
+    ],
+    "v11_proposal_conditioned_e3_refined_free": [
+      426.7812410060855,
+      627.0,
+      212.0,
+      507.0
+    ],
+    "v11_proposal_conditioned_e4_refined_constrained": [
+      427.72209470532715,
+      627.0,
+      210.0,
+      507.0
+    ],
+    "v11_proposal_conditioned_e4_refined_free": [
+      427.9360614472227,
+      627.0,
+      210.0,
+      507.0
+    ]
+  },
+  "frozen_before_audit": true,
+  "smoke": false
+}

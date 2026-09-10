@@ -1,5 +1,11 @@
 # Public Notebook Review - lamhuy8904 0.55
 
+**6 September update:** The [current research](score_050_research_2026-09-06.md)
+supersedes the historical row-count targets and V7 decision rules below.
+Prediction counts from an opaque payload do not measure recall or correctness;
+do not select our model or threshold to match them. The refreshed public
+notebook has identical cell source to the version inspected here.
+
 Reviewed at `2026-09-05 00:19 IST`.
 
 Notebook URL: `https://www.kaggle.com/code/lamhuy8904/solar-filament-unet-segmentation-0-55`

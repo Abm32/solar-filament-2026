@@ -1,0 +1,241 @@
+{
+  "experiment": "v17_mask_ratio1_x_v13_recipe",
+  "run_identity": "df686874d59c04ae20cb67e2ee69507dcf70ba78905e1107801d8134cb81a3c3",
+  "cells": [
+    {
+      "name": "mr1_iou030",
+      "retina_masks": true,
+      "agnostic_nms": true,
+      "iou": 0.3
+    },
+    {
+      "name": "mr1_iou070",
+      "retina_masks": true,
+      "agnostic_nms": true,
+      "iou": 0.7
+    }
+  ],
+  "control_cell": {
+    "name": "frozen_control",
+    "retina_masks": true,
+    "agnostic_nms": true,
+    "iou": 0.7
+  },
+  "arm": "proposal_centered",
+  "mask_ratio": 1,
+  "primary_seed": "seed1",
+  "arm_detectors": {
+    "seed1": {
+      "train_seed": 42,
+      "run": "abhimanyu122/solar-filament-v16-mask-ratio",
+      "detector_sha256": "ae476e663039fbbbfda77ec519635ca15e2d50d1fe9f1af54735f84dbdc251ef",
+      "resolved": "/kaggle/input/notebooks/abhimanyu122/solar-filament-v16-mask-ratio/checkpoints/arm_r1_best.pt"
+    },
+    "seed2": {
+      "train_seed": 20260908,
+      "run": "abhimanyu122/solar-filament-v16-mask-ratio-seed2",
+      "detector_sha256": "097a57ed7b5fe56909393ab05897ba5c41b96f7c343cb88d2ba782dd9dfabbe7",
+      "resolved": "/kaggle/input/notebooks/abhimanyu122/solar-filament-v16-mask-ratio-seed2/checkpoints/arm_r1_best.pt"
+    }
+  },
+  "v11_source_run": "abhimanyu122/solar-filament-v11-refiner",
+  "v11_checkpoint_sha256": "fae496b9d00819f49c5278e81e41a7917b31d18ea80f827e162746d840d14cd2",
+  "v11_checkpoint_identity": {
+    "run_identity": "7c45acf26f210acce00f1bff581288bc2eb6121485237c7c028588d1de69164c",
+    "epoch": 4,
+    "cohort_sha256": "8033aec4505c654c6ca539da1ff244eda14d85f8c58d97ca6e680b23f0ab3bbe",
+    "arm_file": "proposal_centered_e4.pt"
+  },
+  "v6_detector_sha256": "0abf568f5ffa504979a44c6ac4997c231adc38cb3c6d998461295c4dad3a38b8",
+  "canonical_refiner_sha256": "8d00805318233a4196c706c1ec4eba9136ca1cb80d62298f082e82f7a2d01fb1",
+  "control_reference": {
+    "candidate": "t0.40_c0.40",
+    "tune": [
+      426.5473399071961,
+      626,
+      211,
+      508
+    ],
+    "audit": [
+      182.75261599994468,
+      265,
+      88,
+      194
+    ]
+  },
+  "parents": {
+    "e015_control": {
+      "tune_pq": 0.4328232774299302,
+      "audit_pq": 0.4501295960589769,
+      "public_score": 0.38
+    },
+    "v11_proposal_centered_e4": {
+      "tune_pq": 0.438001,
+      "audit_pq": 0.454884,
+      "public_score": 0.39
+    },
+    "v13_compose": {
+      "tune_pq": 0.441777,
+      "audit_pq": 0.464644,
+      "candidate": "t0.45_c0.30",
+      "public_score": 0.39
+    },
+    "v16_arm_r1_seed1": {
+      "tune_pq": 0.43160351518532336,
+      "audit_pq": 0.452409789693012,
+      "candidate": "t0.40_c0.40",
+      "public_score": null
+    },
+    "v16_arm_r1_seed2": {
+      "tune_pq": 0.4347952943716984,
+      "audit_pq": 0.4481401986170993,
+      "candidate": "t0.40_c0.40",
+      "public_score": null
+    }
+  },
+  "submit_bar": {
+    "min_tune_pq": 0.441777,
+    "min_audit_pq": 0.45013,
+    "basis": "V13 tune (best measured to date); audit floor is E015"
+  },
+  "promotion_gate": {
+    "required_tune_delta_vs_v13": 0.01,
+    "require_audit_at_least_v13": true,
+    "v13_audit_pq": 0.464644
+  },
+  "declared_candidates": [
+    "mr1_iou030/t0.35_c0.25",
+    "mr1_iou030/t0.35_c0.30",
+    "mr1_iou030/t0.35_c0.35",
+    "mr1_iou030/t0.35_c0.40",
+    "mr1_iou030/t0.35_c0.45",
+    "mr1_iou030/t0.35_c0.50",
+    "mr1_iou030/t0.35_c0.55",
+    "mr1_iou030/t0.40_c0.25",
+    "mr1_iou030/t0.40_c0.30",
+    "mr1_iou030/t0.40_c0.35",
+    "mr1_iou030/t0.40_c0.40",
+    "mr1_iou030/t0.40_c0.45",
+    "mr1_iou030/t0.40_c0.50",
+    "mr1_iou030/t0.40_c0.55",
+    "mr1_iou030/t0.45_c0.25",
+    "mr1_iou030/t0.45_c0.30",
+    "mr1_iou030/t0.45_c0.35",
+    "mr1_iou030/t0.45_c0.40",
+    "mr1_iou030/t0.45_c0.45",
+    "mr1_iou030/t0.45_c0.50",
+    "mr1_iou030/t0.45_c0.55",
+    "mr1_iou030/t0.50_c0.25",
+    "mr1_iou030/t0.50_c0.30",
+    "mr1_iou030/t0.50_c0.35",
+    "mr1_iou030/t0.50_c0.40",
+    "mr1_iou030/t0.50_c0.45",
+    "mr1_iou030/t0.50_c0.50",
+    "mr1_iou030/t0.50_c0.55",
+    "mr1_iou030/t0.55_c0.25",
+    "mr1_iou030/t0.55_c0.30",
+    "mr1_iou030/t0.55_c0.35",
+    "mr1_iou030/t0.55_c0.40",
+    "mr1_iou030/t0.55_c0.45",
+    "mr1_iou030/t0.55_c0.50",
+    "mr1_iou030/t0.55_c0.55",
+    "mr1_iou030/t0.60_c0.25",
+    "mr1_iou030/t0.60_c0.30",
+    "mr1_iou030/t0.60_c0.35",
+    "mr1_iou030/t0.60_c0.40",
+    "mr1_iou030/t0.60_c0.45",
+    "mr1_iou030/t0.60_c0.50",
+    "mr1_iou030/t0.60_c0.55",
+    "mr1_iou070/t0.35_c0.25",
+    "mr1_iou070/t0.35_c0.30",
+    "mr1_iou070/t0.35_c0.35",
+    "mr1_iou070/t0.35_c0.40",
+    "mr1_iou070/t0.35_c0.45",
+    "mr1_iou070/t0.35_c0.50",
+    "mr1_iou070/t0.35_c0.55",
+    "mr1_iou070/t0.40_c0.25",
+    "mr1_iou070/t0.40_c0.30",
+    "mr1_iou070/t0.40_c0.35",
+    "mr1_iou070/t0.40_c0.40",
+    "mr1_iou070/t0.40_c0.45",
+    "mr1_iou070/t0.40_c0.50",
+    "mr1_iou070/t0.40_c0.55",
+    "mr1_iou070/t0.45_c0.25",
+    "mr1_iou070/t0.45_c0.30",
+    "mr1_iou070/t0.45_c0.35",
+    "mr1_iou070/t0.45_c0.40",
+    "mr1_iou070/t0.45_c0.45",
+    "mr1_iou070/t0.45_c0.50",
+    "mr1_iou070/t0.45_c0.55",
+    "mr1_iou070/t0.50_c0.25",
+    "mr1_iou070/t0.50_c0.30",
+    "mr1_iou070/t0.50_c0.35",
+    "mr1_iou070/t0.50_c0.40",
+    "mr1_iou070/t0.50_c0.45",
+    "mr1_iou070/t0.50_c0.50",
+    "mr1_iou070/t0.50_c0.55",
+    "mr1_iou070/t0.55_c0.25",
+    "mr1_iou070/t0.55_c0.30",
+    "mr1_iou070/t0.55_c0.35",
+    "mr1_iou070/t0.55_c0.40",
+    "mr1_iou070/t0.55_c0.45",
+    "mr1_iou070/t0.55_c0.50",
+    "mr1_iou070/t0.55_c0.55",
+    "mr1_iou070/t0.60_c0.25",
+    "mr1_iou070/t0.60_c0.30",
+    "mr1_iou070/t0.60_c0.35",
+    "mr1_iou070/t0.60_c0.40",
+    "mr1_iou070/t0.60_c0.45",
+    "mr1_iou070/t0.60_c0.50",
+    "mr1_iou070/t0.60_c0.55"
+  ],
+  "thresholds": [
+    0.35,
+    0.4,
+    0.45,
+    0.5,
+    0.55,
+    0.6
+  ],
+  "confidences": [
+    0.25,
+    0.3,
+    0.35,
+    0.4,
+    0.45,
+    0.5,
+    0.55
+  ],
+  "evaluated_cells": [
+    "mr1_iou030",
+    "mr1_iou070"
+  ],
+  "evaluated_seeds": [
+    "seed1",
+    "seed2"
+  ],
+  "policy": "flip_consensus",
+  "mode": "refined_constrained",
+  "match_iou": 0.5,
+  "min_prediction_area": 20,
+  "detector_resolution": 1024,
+  "detector_confidence_floor": 0.1,
+  "detector_views": 4,
+  "crop_views": 4,
+  "crop_size": 256,
+  "smoke_limit": 0,
+  "trains": false,
+  "submits": false,
+  "versions": {
+    "ultralytics": "8.4.138",
+    "torch": "2.10.0+cu128",
+    "torchvision": "0.25.0+cu128",
+    "pycocotools": "2.0.11",
+    "numpy": "2.0.2"
+  },
+  "complete": true,
+  "training_noise_floor_vs_v16": 0.007677316654374711,
+  "note": "Composes V16's replicated mask_ratio=1 detector with V13's measured recipe (box iou swept over {0.3,0.7}, V11 proposal_centered_e4 refiner, 42-candidate grid per cell). Trains nothing, so E026's detector-training noise floor does not apply. Control must reproduce the accepted 0.38 CSV first. Export gated on SUBMIT_BAR; submission stays manual.",
+  "smoke": false,
+  "exported": true
+}

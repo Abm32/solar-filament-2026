@@ -1,0 +1,62 @@
+{
+  "selected": "t0.45_c0.30",
+  "selected_tune_pq": 0.4417771081401778,
+  "selected_audit_pq": 0.4646438167892603,
+  "deltas_vs_parents": {
+    "e015_control": {
+      "tune": 0.008953830710247579,
+      "audit": 0.014514220730283411
+    },
+    "ea_iou030": {
+      "tune": 0.0050515530115519125,
+      "audit": 0.005589659666820623
+    },
+    "v11_proposal_centered_e4": {
+      "tune": 0.003776108140177814,
+      "audit": 0.0097598167892603
+    }
+  },
+  "submit_bar": {
+    "min_tune_pq": 0.4367255551286259,
+    "min_audit_pq": 0.4501295960589769,
+    "basis": "better parent's tune (E-A 0.436726); audit floor is E015"
+  },
+  "export_authorized": true,
+  "promotion_gate": {
+    "required_tune_delta_vs_v11": 0.003,
+    "require_audit_at_least_v11": true
+  },
+  "promotable": true,
+  "recommendation": "promote",
+  "control_counts": {
+    "tune": [
+      426.5473399071962,
+      626.0,
+      211.0,
+      508.0
+    ],
+    "audit": [
+      182.75261599994462,
+      265.0,
+      88.0,
+      194.0
+    ]
+  },
+  "control_csv": {
+    "file": "submission_control.csv",
+    "rows": 982,
+    "sha256": "bf11690e9bcce73b0c627096cc1198d9fb0916650f7fa4b3f08f1167bb76bde9",
+    "config": {
+      "threshold": 0.4,
+      "confidence": 0.4
+    },
+    "evaluated_images": 180,
+    "empty_images": [
+      "20170708164010Mh.jpeg",
+      "20200310113230Ch.jpeg",
+      "20200806072410Th.jpeg",
+      "20211214174010Mh.jpeg"
+    ],
+    "structural_validation": "all masks decoded, area>=20, per-image ownership disjoint"
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "submission_ref": "56103401",
+  "file_name": "submission.csv",
+  "local_file": "submission_v17.csv",
+  "sha256": "87b22b056ca830527664a92db8daa76e2c93660cd232ae45346b28d4c1cb922b",
+  "submitted_utc": "2026-09-08T17:24:16.870000+00:00",
+  "status": "SubmissionStatus.COMPLETE",
+  "public_score": 0.39,
+  "private_score": null,
+  "confirmed_utc": "2026-09-09T10:35:00+00:00",
+  "candidate": "mr1_iou030/t0.45_c0.30",
+  "local_tune_pq": 0.448702717279432,
+  "local_audit_pq": 0.4707634285309831,
+  "description": "V17: mask_ratio=1 detector x V13 recipe (box iou=0.3 x V11 proposal_centered_e4), t0.45/c0.30 - clears SUBMIT_BAR (tune 0.4487/audit 0.4708) not PROMOTION_GATE (+0.0069 vs V13, need +0.010); seed1/seed2 spread 0.0038",
+  "gates": {
+    "submit_bar": "CLEARED",
+    "promotion_gate": "NOT CLEARED"
+  },
+  "outcome": "tie",
+  "outcome_detail": "Fifth consecutive 0.39. Ties V13 (56076685), V11 proposal_centered (56049359) and V11 gt_centered (56050554) despite being +0.006926 tune / +0.006119 audit above V13 locally, and +0.015879 tune above the 0.38-scoring E015 baseline.",
+  "calibration_significance": "This is the point that falsifies ceiling_analysis_2026-09-07.md section 1. That document asserted a stable local->public offset of -0.050 +- 0.003 over four submissions and derived the project's target from it ('public 0.55 requires local tune PQ ~= 0.60'). Under that model V17's local 0.448703 predicted public 0.3959-0.4014. It scored 0.39. scripts/analyze_public_transfer.py shows the feasible constant-offset region across all five submissions is now EMPTY under both round-to-nearest and truncation display models, and that a slope of a=1.00 is ruled out for any affine model (feasible slopes a in [0.01, 0.87]).",
+  "local_to_public_history": [
+    {"local_tune_pq": 0.432823, "public": 0.38, "ref": "56026663", "name": "E015 consensus TTA"},
+    {"local_tune_pq": 0.437313, "public": 0.39, "ref": "56050554", "name": "V11 gt_centered_e4"},
+    {"local_tune_pq": 0.438001, "public": 0.39, "ref": "56049359", "name": "V11 proposal_centered_e4"},
+    {"local_tune_pq": 0.441777, "public": 0.39, "ref": "56076685", "name": "V13 compose"},
+    {"local_tune_pq": 0.448703, "public": 0.39, "ref": "56103401", "name": "V17 compose"}
+  ],
+  "verification": {
+    "frozen_control_reproduced_e015": true,
+    "control_counts_tune": [426.5473399071962, 626, 211, 508],
+    "control_counts_audit": [182.75261599994462, 265, 88, 194],
+    "control_csv_sha256": "bf11690e9bcce73b0c627096cc1198d9fb0916650f7fa4b3f08f1167bb76bde9",
+    "control_csv_matches_accepted_038": true,
+    "independent_csv_validation": "PASSED",
+    "masks": 1215,
+    "populated_images": 177,
+    "trains": false
+  },
+  "source_kernel": "abhimanyu122/solar-filament-v17-compose",
+  "design_doc": "docs/v17_design_2026-09-08.md",
+  "ledger_entry": "E027"
+}

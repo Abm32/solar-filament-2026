@@ -1,0 +1,45 @@
+[
+  {
+    "file": "submission_control.csv",
+    "rows": 982,
+    "sha256": "bf11690e9bcce73b0c627096cc1198d9fb0916650f7fa4b3f08f1167bb76bde9",
+    "evaluated_images": 180,
+    "empty_images": [
+      "20170708164010Mh.jpeg",
+      "20200310113230Ch.jpeg",
+      "20200806072410Th.jpeg",
+      "20211214174010Mh.jpeg"
+    ],
+    "structural_validation": "all masks decoded, area>=20, per-image ownership disjoint",
+    "candidate": "v11_frozen_control",
+    "control_verified": true
+  },
+  {
+    "file": "submission.csv",
+    "rows": 980,
+    "sha256": "97e6db03a9ad7cc1e15750d40fd4ebcdeb77504b704dd050ca9a963f73c72a6c",
+    "evaluated_images": 180,
+    "empty_images": [
+      "20170708164010Mh.jpeg",
+      "20200310113230Ch.jpeg",
+      "20200806072410Th.jpeg",
+      "20211214174010Mh.jpeg"
+    ],
+    "structural_validation": "all masks decoded, area>=20, per-image ownership disjoint",
+    "candidate": "v11_gt_centered_e4_refined_constrained",
+    "promotable": false,
+    "gate": {
+      "promotable": false,
+      "reason": "predeclared improvement gates failed",
+      "deltas": {
+        "tune_v6": 0.005177338559703704,
+        "tune_v10": 0.003936376179929257,
+        "audit_v6": 0.004754753668608613,
+        "audit_v10": 0.0030472597663005474
+      },
+      "required_min_tune_delta_v6": 0.01
+    },
+    "full_control_validated": true,
+    "requires_independent_csv_validation": true
+  }
+]

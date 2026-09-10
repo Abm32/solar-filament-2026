@@ -1,5 +1,11 @@
 # V10 — ready for submission on 2026-09-06
 
+**Already submitted on 2026-09-06; do not upload again.** Kaggle submission
+**56044785**, created at **02:14:51.233 UTC / 07:44:51.233 IST**, is **COMPLETE**.
+Public score: **0.38**, tying the previous best; confirmed at **02:18:43 UTC /
+07:48:43 IST**. [Submission receipt](submission_receipt.json).
+The instructions below describe the frozen package and original upload procedure.
+
 Upload **`submission_v10.csv` only** to
 [Solar Filament Segmentation Challenge 2026](https://www.kaggle.com/competitions/filament-segmentation-2026).
 Do not upload the JSON reports, this README, or the control CSV.

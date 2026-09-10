@@ -1,0 +1,20 @@
+{
+  "competition": "filament-segmentation-2026",
+  "candidate": "v10_quality_rank_rescue40",
+  "file_name": "submission_v10.csv",
+  "sha256": "a39da47881431a22cd9b67acabeec624a06e2e2450487f92290048c3e72c2777",
+  "description": "V10 quality_rank_rescue40 - V6 COCO custom TTA + conservative V8 rescue",
+  "attempt_started_utc": "2026-09-06T02:14:46.735482+00:00",
+  "allowance_before": 5,
+  "status": "SubmissionStatus.COMPLETE",
+  "upload_http_status": "200",
+  "upload_process_exit_code": 0,
+  "submission_id": 56044785,
+  "server_message": "Successfully submitted to Solar Filament Segmentation Challenge 2026",
+  "response_received_utc": "2026-09-06T02:14:52.853544+00:00",
+  "public_score": "0.38",
+  "private_score": "",
+  "submission_date_utc": "2026-09-06T02:14:51.233000",
+  "last_checked_utc": "2026-09-06T02:18:43.061921+00:00",
+  "allowance_after": 4
+}

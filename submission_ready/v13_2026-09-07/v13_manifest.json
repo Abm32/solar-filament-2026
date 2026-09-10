@@ -1,0 +1,247 @@
+{
+  "experiment": "v13_ea_flags_x_v11_refiner",
+  "run_identity": "f32e8a54347d6629b2329e42481204be153834eeff0542ad7f85f632cfcb93ac",
+  "cell": {
+    "name": "ea_iou030",
+    "retina_masks": true,
+    "agnostic_nms": true,
+    "iou": 0.3
+  },
+  "control_cell": {
+    "name": "frozen_control",
+    "retina_masks": true,
+    "agnostic_nms": true,
+    "iou": 0.7
+  },
+  "arm": "proposal_centered",
+  "v11_source_run": "abhimanyu122/solar-filament-v11-refiner",
+  "v11_checkpoint_sha256": "fae496b9d00819f49c5278e81e41a7917b31d18ea80f827e162746d840d14cd2",
+  "v11_checkpoint_identity": {
+    "run_identity": "7c45acf26f210acce00f1bff581288bc2eb6121485237c7c028588d1de69164c",
+    "epoch": 4,
+    "cohort_sha256": "8033aec4505c654c6ca539da1ff244eda14d85f8c58d97ca6e680b23f0ab3bbe",
+    "arm_file": "proposal_centered_e4.pt"
+  },
+  "detector_sha256": "0abf568f5ffa504979a44c6ac4997c231adc38cb3c6d998461295c4dad3a38b8",
+  "canonical_refiner_sha256": "8d00805318233a4196c706c1ec4eba9136ca1cb80d62298f082e82f7a2d01fb1",
+  "control_reference": {
+    "candidate": "t0.40_c0.40",
+    "tune": [
+      426.5473399071961,
+      626,
+      211,
+      508
+    ],
+    "audit": [
+      182.75261599994468,
+      265,
+      88,
+      194
+    ]
+  },
+  "parents": {
+    "e015_control": {
+      "tune_pq": 0.4328232774299302,
+      "audit_pq": 0.4501295960589769
+    },
+    "ea_iou030": {
+      "tune_pq": 0.4367255551286259,
+      "audit_pq": 0.4590541571224397,
+      "candidate": "t0.40_c0.30",
+      "public_score": null
+    },
+    "v11_proposal_centered_e4": {
+      "tune_pq": 0.438001,
+      "audit_pq": 0.454884,
+      "public_score": 0.39
+    }
+  },
+  "submit_bar": {
+    "min_tune_pq": 0.4367255551286259,
+    "min_audit_pq": 0.4501295960589769,
+    "basis": "better parent's tune (E-A 0.436726); audit floor is E015"
+  },
+  "promotion_gate": {
+    "required_tune_delta_vs_v11": 0.003,
+    "require_audit_at_least_v11": true
+  },
+  "declared_candidates": [
+    "t0.35_c0.25",
+    "t0.35_c0.30",
+    "t0.35_c0.35",
+    "t0.35_c0.40",
+    "t0.35_c0.45",
+    "t0.35_c0.50",
+    "t0.35_c0.55",
+    "t0.40_c0.25",
+    "t0.40_c0.30",
+    "t0.40_c0.35",
+    "t0.40_c0.40",
+    "t0.40_c0.45",
+    "t0.40_c0.50",
+    "t0.40_c0.55",
+    "t0.45_c0.25",
+    "t0.45_c0.30",
+    "t0.45_c0.35",
+    "t0.45_c0.40",
+    "t0.45_c0.45",
+    "t0.45_c0.50",
+    "t0.45_c0.55",
+    "t0.50_c0.25",
+    "t0.50_c0.30",
+    "t0.50_c0.35",
+    "t0.50_c0.40",
+    "t0.50_c0.45",
+    "t0.50_c0.50",
+    "t0.50_c0.55",
+    "t0.55_c0.25",
+    "t0.55_c0.30",
+    "t0.55_c0.35",
+    "t0.55_c0.40",
+    "t0.55_c0.45",
+    "t0.55_c0.50",
+    "t0.55_c0.55",
+    "t0.60_c0.25",
+    "t0.60_c0.30",
+    "t0.60_c0.35",
+    "t0.60_c0.40",
+    "t0.60_c0.45",
+    "t0.60_c0.50",
+    "t0.60_c0.55"
+  ],
+  "thresholds": [
+    0.35,
+    0.4,
+    0.45,
+    0.5,
+    0.55,
+    0.6
+  ],
+  "confidences": [
+    0.25,
+    0.3,
+    0.35,
+    0.4,
+    0.45,
+    0.5,
+    0.55
+  ],
+  "policy": "flip_consensus",
+  "mode": "refined_constrained",
+  "match_iou": 0.5,
+  "min_prediction_area": 20,
+  "detector_resolution": 1024,
+  "detector_confidence_floor": 0.1,
+  "detector_views": 4,
+  "crop_views": 4,
+  "crop_size": 256,
+  "smoke_limit": 0,
+  "trains": false,
+  "submits": false,
+  "versions": {
+    "ultralytics": "8.4.138",
+    "torch": "2.10.0+cu128",
+    "torchvision": "0.25.0+cu128",
+    "pycocotools": "2.0.11",
+    "numpy": "2.0.2"
+  },
+  "complete": true,
+  "agnostic_nms_note": "Kept True to match E-A's winning cell exactly. E023 established it is inert under single_cls=True.",
+  "note": "Composition of two measured orthogonal levers; export is gated on SUBMIT_BAR and submission remains a separate manual step.",
+  "selected": "t0.45_c0.30",
+  "report": {
+    "selected": "t0.45_c0.30",
+    "selected_tune_pq": 0.4417771081401778,
+    "selected_audit_pq": 0.4646438167892603,
+    "deltas_vs_parents": {
+      "e015_control": {
+        "tune": 0.008953830710247579,
+        "audit": 0.014514220730283411
+      },
+      "ea_iou030": {
+        "tune": 0.0050515530115519125,
+        "audit": 0.005589659666820623
+      },
+      "v11_proposal_centered_e4": {
+        "tune": 0.003776108140177814,
+        "audit": 0.0097598167892603
+      }
+    },
+    "submit_bar": {
+      "min_tune_pq": 0.4367255551286259,
+      "min_audit_pq": 0.4501295960589769,
+      "basis": "better parent's tune (E-A 0.436726); audit floor is E015"
+    },
+    "export_authorized": true,
+    "promotion_gate": {
+      "required_tune_delta_vs_v11": 0.003,
+      "require_audit_at_least_v11": true
+    },
+    "promotable": true,
+    "recommendation": "promote",
+    "control_counts": {
+      "tune": [
+        426.5473399071962,
+        626.0,
+        211.0,
+        508.0
+      ],
+      "audit": [
+        182.75261599994462,
+        265.0,
+        88.0,
+        194.0
+      ]
+    },
+    "control_csv": {
+      "file": "submission_control.csv",
+      "rows": 982,
+      "sha256": "bf11690e9bcce73b0c627096cc1198d9fb0916650f7fa4b3f08f1167bb76bde9",
+      "config": {
+        "threshold": 0.4,
+        "confidence": 0.4
+      },
+      "evaluated_images": 180,
+      "empty_images": [
+        "20170708164010Mh.jpeg",
+        "20200310113230Ch.jpeg",
+        "20200806072410Th.jpeg",
+        "20211214174010Mh.jpeg"
+      ],
+      "structural_validation": "all masks decoded, area>=20, per-image ownership disjoint"
+    }
+  },
+  "control_export": {
+    "file": "submission_control.csv",
+    "rows": 982,
+    "sha256": "bf11690e9bcce73b0c627096cc1198d9fb0916650f7fa4b3f08f1167bb76bde9",
+    "config": {
+      "threshold": 0.4,
+      "confidence": 0.4
+    },
+    "evaluated_images": 180,
+    "empty_images": [
+      "20170708164010Mh.jpeg",
+      "20200310113230Ch.jpeg",
+      "20200806072410Th.jpeg",
+      "20211214174010Mh.jpeg"
+    ],
+    "structural_validation": "all masks decoded, area>=20, per-image ownership disjoint"
+  },
+  "candidate_export": {
+    "file": "submission.csv",
+    "rows": 1198,
+    "sha256": "96a71016cba3195ca2a651718a9e546db8efcb22875e0fd308545a2f9f13c7fa",
+    "config": {
+      "threshold": 0.45,
+      "confidence": 0.3
+    },
+    "evaluated_images": 180,
+    "empty_images": [
+      "20170708164010Mh.jpeg",
+      "20200310113230Ch.jpeg",
+      "20211214174010Mh.jpeg"
+    ],
+    "structural_validation": "all masks decoded, area>=20, per-image ownership disjoint"
+  }
+}

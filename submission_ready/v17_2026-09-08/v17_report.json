@@ -1,0 +1,105 @@
+{
+  "selected": "mr1_iou030/t0.45_c0.30",
+  "selected_tune_pq": 0.448702717279432,
+  "selected_audit_pq": 0.4707634285309831,
+  "deltas_vs_parents": {
+    "e015_control": {
+      "tune": 0.015879439849501797,
+      "audit": 0.020633832472006175
+    },
+    "v11_proposal_centered_e4": {
+      "tune": 0.010701717279432033,
+      "audit": 0.015879428530983064
+    },
+    "v13_compose": {
+      "tune": 0.006925717279432031,
+      "audit": 0.006119428530983073
+    },
+    "v16_arm_r1_seed1": {
+      "tune": 0.017099202094108645,
+      "audit": 0.018353638837971087
+    },
+    "v16_arm_r1_seed2": {
+      "tune": 0.013907422907733613,
+      "audit": 0.02262322991388377
+    }
+  },
+  "submit_bar": {
+    "min_tune_pq": 0.441777,
+    "min_audit_pq": 0.45013,
+    "basis": "V13 tune (best measured to date); audit floor is E015"
+  },
+  "export_authorized": true,
+  "promotion_gate": {
+    "required_tune_delta_vs_v13": 0.01,
+    "require_audit_at_least_v13": true,
+    "v13_audit_pq": 0.464644
+  },
+  "promotable": false,
+  "inference_only": true,
+  "training_noise_floor_note": "E026 measured a detector-TRAINING noise floor of 0.007677 tune PQ. V17 trains nothing: the detectors, refiner and every cached proposal are pinned by SHA-256, so that floor does not apply and this comparison is deterministic.",
+  "recommendation": "export and measure one submission",
+  "control_counts": {
+    "tune": [
+      426.5473399071962,
+      626.0,
+      211.0,
+      508.0
+    ],
+    "audit": [
+      182.75261599994462,
+      265.0,
+      88.0,
+      194.0
+    ]
+  },
+  "control_csv": {
+    "file": "submission_control.csv",
+    "rows": 982,
+    "sha256": "bf11690e9bcce73b0c627096cc1198d9fb0916650f7fa4b3f08f1167bb76bde9",
+    "config": {
+      "threshold": 0.4,
+      "confidence": 0.4
+    },
+    "evaluated_images": 180,
+    "empty_images": [
+      "20170708164010Mh.jpeg",
+      "20200310113230Ch.jpeg",
+      "20200806072410Th.jpeg",
+      "20211214174010Mh.jpeg"
+    ],
+    "structural_validation": "all masks decoded, area>=20, per-image ownership disjoint"
+  },
+  "raw_proposal_summaries": {
+    "seed1": {
+      "n": 1593,
+      "mean": 0.5692509421224747,
+      "max": 0.9118876621288455,
+      "p90": 0.7402503784213008,
+      "above_0_8734": 1
+    },
+    "seed2": {
+      "n": 1593,
+      "mean": 0.5733223533702971,
+      "max": 0.9092649718115094,
+      "p90": 0.7395454978972065,
+      "above_0_8734": 2
+    }
+  },
+  "seed_agreement": {
+    "per_seed": {
+      "seed1": {
+        "tune_pq": 0.448702717279432,
+        "audit_pq": 0.4707634285309831
+      },
+      "seed2": {
+        "tune_pq": 0.44486024040995364,
+        "audit_pq": 0.4683003513961998
+      }
+    },
+    "selected": "mr1_iou030/t0.45_c0.30",
+    "tune_pq_spread": 0.0038424768694783618,
+    "both_clear_submit_bar": true,
+    "note": "Selection uses the pre-registered primary seed only. A large spread means the result is seed-specific, not a property of mask_ratio=1."
+  }
+}

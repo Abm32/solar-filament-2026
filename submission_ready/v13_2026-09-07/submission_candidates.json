@@ -1,0 +1,42 @@
+[
+  {
+    "file": "submission_control.csv",
+    "rows": 982,
+    "sha256": "bf11690e9bcce73b0c627096cc1198d9fb0916650f7fa4b3f08f1167bb76bde9",
+    "config": {
+      "threshold": 0.4,
+      "confidence": 0.4
+    },
+    "evaluated_images": 180,
+    "empty_images": [
+      "20170708164010Mh.jpeg",
+      "20200310113230Ch.jpeg",
+      "20200806072410Th.jpeg",
+      "20211214174010Mh.jpeg"
+    ],
+    "structural_validation": "all masks decoded, area>=20, per-image ownership disjoint",
+    "candidate": "v13_frozen_control",
+    "control_verified": true
+  },
+  {
+    "file": "submission.csv",
+    "rows": 1198,
+    "sha256": "96a71016cba3195ca2a651718a9e546db8efcb22875e0fd308545a2f9f13c7fa",
+    "config": {
+      "threshold": 0.45,
+      "confidence": 0.3
+    },
+    "evaluated_images": 180,
+    "empty_images": [
+      "20170708164010Mh.jpeg",
+      "20200310113230Ch.jpeg",
+      "20211214174010Mh.jpeg"
+    ],
+    "structural_validation": "all masks decoded, area>=20, per-image ownership disjoint",
+    "candidate": "t0.45_c0.30",
+    "promotable": true,
+    "tune_pq": 0.4417771081401778,
+    "audit_pq": 0.4646438167892603,
+    "requires_independent_csv_validation": true
+  }
+]
