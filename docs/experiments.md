@@ -1,9 +1,634 @@
+## E053 — V41 learned contextual texture/topology bounded overfit gate
 
-2026-09-10 latest: **V19 Mask2Former — the "genuinely different architecture
-family" the project's own analysis said was the only remaining lever — ran to
-completion and failed hard.** Best tune PQ **0.153578**, roughly a third of
-SUBMIT_BAR (0.448703), audit PQ 0.150346. See E029 below.
+**Status: RUNNING; no quality conclusion; no tune/audit/test/export/submission.**
+
+V39+V40 leave 121/212 all-detector misses unsupported. Their median area is 946
+px, median effective width 10.33 px, median spine length 81 px, and 65/121 are
+category 3. V41 is a separately frozen learned-context experiment informed by
+S3-Mamba small-target residual/channel/multiscale mechanisms and DTU-Net's
+decoupled texture/topology refinement.
+
+The dependency-light ContextTopologyUNet uses raw/CLAHE/local-dark/Sobel inputs,
+residual squeeze-excitation encoders, dilated context, foreground/spine/boundary
+heads, topology residual refinement, balanced BCE+Dice, and watershed decoding.
+Its fit-only cohort contains 16 distinct images / 308 GT, including 244 small+thin
+instances, selection ID `741d8124...`. Full training requires bounded memorization
+PQ >=0.85, recall >=0.90, median IoU >=0.80, FP <=40, safe foreground fraction,
+all 2,000 steps or early full-gate success, deterministic reload, <14,336 MiB, and
+<=7,200 seconds.
+
+Local target preflight passed exactly; focused V39-V41 tests reported 21 passed
+and Ruff passed. Private offline Kaggle kernel
+`abhimanyu122/solar-filament-v41-context-topology-g2` version 1 launched on
+2026-09-14 and remained `running` through 23:09 IST. It requests one T4 and
+refuses non-T4 provenance before image/model access. It cannot read tune, audit,
+test, internet, export, or submit.
+
+**Decision pending:** launch is not success. Do not design full training until
+`v41_g2_result.json` is retrieved and independently checked. Staging and receipt:
+`outputs/v41_g2_kaggle/`; frozen design: `docs/v41_design_2026-09-14.md`.
+
+## E052 — V40 multiscale dark-ridge signal opportunity gate
+
+**Status: CLOSED AT G1; image signal exists in a minority but material coverage failed; no fit/audit/test/GPU/training/export/submission.**
+
+V40 tested whether a new native-resolution semantic generator is justified by
+fixed image evidence in the detector-unsupported population. Before opening tune
+pixels, it froze unchanged V23 radial flattening/CLAHE, native Frangi sigmas
+`1/2/4/8`, expert-spine radius-2 positives, clean local [8,24] px background
+excluding every same-file annotation, and addressability at AUC >=0.70, q90
+coverage >=0.25, and positive median separation.
+
+The run opened exactly 94 canonical tune JPEGs and processed 1,134 GT. V39
+regression reproduced 922 found, 212 misses, and 113 zero-fragment misses.
+Ridge-addressability was **226/922 (24.5119%)** found, **63/212 (29.7170%)**
+missed, and **40/113 (35.3982%)** zero-fragment. Addressable zero-fragment cases
+were individually strong (median AUC **0.811453**, q90 coverage **0.408248**), but
+absolute coverage failed all three population gates. Perfect zero-FP recovery of
+all 63 misses at IoU 0.65 projects V17 PQ only **0.448703 -> 0.473003**.
+
+V39 graph and V40 ridge opportunities jointly cover 91/212 misses with only 12 in
+common, leaving 121 unsupported. Seventy-three of 113 zero-fragment misses also
+lack the fixed ridge signal.
+
+**Decision:** `g1_passed=false`, `g2_model_design_authorized=false`. Do not tune
+Frangi scales/thresholds, train a V40 semantic model, open audit/test, export, or
+submit. Repeated output was byte-identical, SHA-256
+`5362ac80b483de0e45c32a82177d4a9161b1526848635488b6429585f222092b`.
+Evidence: `docs/v40_design_2026-09-14.md`,
+`scripts/analyze_v40_multiscale_ridge_signal.py`,
+`tests/test_v40_multiscale_ridge_signal.py`, and
+`outputs/v40_multiscale_ridge_signal/`. Preserve V17 submission `56103401` at
+public 0.39. Any next image model needs a separately researched learned contextual
+feature mechanism rather than classical-ridge or existing-proposal rescue.
+
+## E051 — V39 latent-fragment graph-assembly opportunity gate
+
+**Status: CLOSED AT G1; material opportunity failed; no images/GPU/audit/test/training/export/submission.**
+
+V39 tested the last ranked clean mechanism not directly measured by V31–V38:
+whether TARDIS-style pairwise graph assembly could reconnect pure sub-threshold
+proposal fragments into the 212 GT instances missed by all six complete detector
+sources. The tune-only contract froze >=5% GT coverage, >=50% proposal purity,
+exact-mask deduplication, at least two distinct masks and two sources, >=65% GT
+area and projected expert-spine coverage, >=65% miss coverage, and projected V17
+PQ >=0.50 before implementation.
+
+G0 reproduced exact source matches `841/794/826/884/843/893`, union 922, and
+misses 212. Only **40/212 (18.8679%)** misses were graph-addressable. Their median
+union area/spine coverage was **0.796447 / 0.788881**, passing both quality gates,
+but perfect zero-FP recovery at IoU 0.65 projects V17 tune PQ only
+**0.448703 -> 0.464294**. Moreover, 113/212 misses had zero admissible fragment in
+any source. Miss coverage and projected-PQ gates failed.
+
+**Decision:** `g1_passed=false`, `g2_model_design_authorized=false`. Close graph
+assembly over the existing six proposal pools; do not install/train TARDIS, alter
+fragment thresholds, open audit/test, export, or submit. Repeated execution was
+byte-identical; result SHA-256
+`bf224e9de46324f8f7849b7d524f28f9a07d4a5f3fdde6ad370a85d4705a5233`.
+Evidence: `docs/v39_design_2026-09-14.md`,
+`scripts/analyze_v39_fragment_graph_opportunity.py`,
+`tests/test_v39_fragment_graph_opportunity.py`, and
+`outputs/v39_fragment_graph_opportunity/`. Preserve V17 submission `56103401`
+at public 0.39. Any next clean path must generate genuinely new foreground for
+unsupported faint/small instances rather than assemble or rescore these caches.
+
+## E050 — V38 orientation-to-overpass opportunity gate
+
+**Status: CLOSED AT G1; mechanism coverage failed; no GPU/images/audit/test/training/export/submission.**
+
+V38 tested the last ranked filament-specific architecture mechanism before
+spending GPU quota. Using only canonical tune annotation geometry and the six
+complete signed V6/V16/V17 proposal populations, it measured whether local
+parallel/crossing/terminus interactions explain the 212 GT instances missed by
+every detector. The design froze a 16 px interaction radius, six-branch-derived
+30-degree split, IoU 0.65 recovery assumption, 65% miss-coverage gate, 1.25x
+enrichment gate, and projected V17 PQ >=0.50 before implementation.
+
+G0 reproduced exact source matches `841/794/826/884/843/893`, union 922, and
+all-source misses 212. Only **7/212 (3.3019%)** misses were addressable, versus
+11/922 (1.1931%) found instances. Enrichment passed at 2.7676x, but absolute
+coverage failed decisively. Perfect zero-FP recovery of all seven at IoU 0.65
+would move projected V17 tune PQ only **0.448703 -> 0.451473**, below 0.50.
+
+**Decision:** `g1_passed=false`, `g2_model_design_authorized=false`. Close
+orientation-to-overpass without model training. Repeated full execution was
+byte-identical; result SHA-256
+`c83bf78f5f55d54eb6d0e9c6a3c5f4978e0060980ee29d6bff33bd043393561f`.
+Evidence: `docs/v38_design_2026-09-14.md`,
+`outputs/v38_orientation_opportunity/result.json`. Preserve validated V17
+submission `56103401` at public 0.39.
+
+
+## E049 — V37 exact-runtime RF-DETR-Seg-Nano Azure gate
+
+**Status: CLOSED AT G2; bounded memorization failed; no tune/audit/test/export/submission.**
+
+V37 isolated the exact V35-compatible package family (`torch==2.10.0+cu128`, `torchvision==0.25.0+cu128`, `transformers==5.17.0`, `rfdetr==1.10.1`) under `/mnt/solar-v37-rfdetr` on one Azure Tesla T4. It retained V36's complete scientific contract: official generic-COCO-pretrained RF-DETR-Seg-Nano, one class / 100 queries, fixed 768 input, mask downsample ratio 2, batch/accumulation one, LR 1e-4, gradient checkpointing, and exactly 16 canonical fit records / nine JPEGs / 57 annotations. Tune, audit, competition test, public Solar payloads, CSV export, and submission were forbidden through G2.
+
+G0 passed with exact package, accelerator, data, wheel, and checkpoint identities. Corrected G1 passed every gate: finite losses, 113.792 seconds, 5,785 MiB external peak / 4,482.584 MiB allocated, clean checkpoint reload and prediction, and intact firewall. This authorized only the pre-frozen G2.
+
+G2 completed exactly 125 epochs / 2,000 steps. Epochs 25/50/75/100/125 were evaluated across confidence 0.05/0.10/0.20/0.30/0.50 with strict source-resolution one-to-one matching at IoU>0.5. Best was epoch 125 / confidence 0.10: **PQ 0.523400**, recall **0.894737**, median matched IoU **0.746306**, 51 TP / 36 FP / 6 FN. It missed the frozen quality gates of 0.85 / 0.90 / 0.80. All 1,505 parsed losses were finite; 11,177 MiB external peak, 4,490.104 MiB allocated, step budget, and firewall all passed. Independent verification recomputed all 25 cells and reproduced selection.
+
+**Decision:** `g2_passed=false`, `full_design_authorized=false`. Close V37 without architecture/resolution/mask-ratio/query/loss/threshold/augmentation/step-budget rescue. No full training, tune/audit/test read, CSV, export, or submission is authorized. Evidence: `outputs/v37_rfdetr_azure/` (result SHA-256 `651f0a5aaca87c759a4030970afd2a236c5a6b8a7a126eed8ed8a3fda7e24899`), `docs/v37_design_2026-09-14.md`. Preserve V17 submission `56103401` at public 0.39.
+
+## E048 — V36 RF-DETR shared-runtime portability gate
+
+**Status: CLOSED AT G0; environment import gate failed before model execution.**
+
+V36 moved V35's unchanged scientific contract to the known Azure T4 host while requiring the shared project Torch `2.4.1+cu121` / torchvision `0.19.1+cu121` stack to remain unchanged. The isolated dependency import gate failed because pinned `transformers==5.17.0` disables PyTorch below 2.5, preventing RF-DETR's DINOv2 backbone import (`BackboneConfigMixin` unavailable). No model was constructed, no image-model step ran, and no tune/audit/test/export/submission access occurred.
+
+**Decision:** close V36 as an environment-portability failure; do not weaken its Torch-preservation rule after observation. V37 was separately frozen to test the exact already-observed compatible runtime, not treated as a V36 retry.
+
+## E047 — V35 RF-DETR-Seg-Nano G1 feasibility
+
+**Status: SUPERSEDED BY V37; V35 itself was infrastructure-blocked; no tune/audit/test/export/submission.**
+
+V35 selected official `rfdetr==1.10.1` Seg-Nano and the hash-pinned generic COCO segmentation checkpoint after rejecting MaskDINO on T4 resource evidence. G1 is restricted to 16 canonical fit annotator records (nine fit JPEGs, 57 annotations), fixed 768 resolution, mask downsample ratio 2, batch one, one epoch, and no competition tune/audit/test or CSV path.
+
+Private run v1 completed all train and validation batches, logged finite losses, saved `checkpoint_0.ckpt`, `checkpoint_best_regular.pth`, and `checkpoint_best_total.pth`, and stayed within the frozen gates at 157.914 seconds, 7,999 MiB external peak, and 4,964.323 MiB allocated. A post-training reload smoke then used the original source filename rather than the deterministic converted alias and raised `FileNotFoundError`. Retrieved `training_config.json` also exposed `multi_scale=true`; the frozen design requires fixed square resize. The focused correction changed only alias addressing, immediate loss capture, and explicit `multi_scale=false`.
+
+Two immutable corrected attempts were scheduled as T4 kernels but Kaggle assigned Tesla P100-PCIE-16GB both times. Kaggle's Torch `2.10.0+cu128` supports `sm_70+`, not P100 `sm_60`. Fix1 surfaced `cudaErrorNoKernelImageForDevice` before training. Fix2 added an explicit accelerator provenance gate and rejected the second P100 before model construction, recording `gpu.name`, capability, and the infrastructure block. Neither attempt evaluated corrected G1 model behavior.
+
+**Historical V35 decision:** the P100 attempts were correctly classified as infrastructure failures and did not authorize V35 G2. The unchanged scientific contract was subsequently moved through separately frozen V36/V37 portability gates; V37 evaluated it on an actual T4 and closed it at G2 (E049). Do not retry V35 or reinterpret its P100 failures as model evidence. Evidence: `outputs/v35_g1_kaggle_download/`, `outputs/v35_g1_kaggle_fix1_download/`, and `outputs/v35_g1_kaggle_fix2_download/`. Preserve V17 submission `56103401` at public 0.39.
+
 # Experiments
+## E046 — V34 expert-spine bilateral width-profile oracle
+
+**Status: CLOSED AT G1; combined representation-PQ gate failed; no GPU/images/audit/test/export/submission.**
+
+After V33 closed dense image-to-field prediction, V34 tested a genuinely different expert-spine representation before any GPU work: each source filament became an ordered projected centerline with independently measured left/right normal widths, reconstructed as a geometric ribbon. A matched symmetric-width control isolated the value of bilateral asymmetry. The hash-pinned CPU oracle read only official fit+tune annotation geometry; no image pixels, audit, test, model, or public MAGFiLO labels were accessed.
+
+The corrected full oracle covered 1,087 annotator records / 7,740 GT. All 7,740 ordered spines were valid. Bilateral reconstruction reached combined **PQ 0.945963**, SQ 0.946085, recall 0.999871, **7,739 TP / 1 FP / 1 FN**, and median matched IoU 0.958979. Split PQ was 0.945583 fit / 0.948178 tune. The symmetric control reached only 0.764011, so bilateral widths added **+0.181952 PQ** and clearly encode important mask asymmetry.
+
+The frozen combined-PQ gate was >=0.95. V34 missed it by **0.004037** while passing every other gate. Therefore `g1_passed=false` and `gpu_authorized=false`. Do not lower the gate or tune tangent radius, ray sampling, width smoothing, rasterization, or endpoint treatment after observation.
+
+A first full run exposed a legacy overlap accounting shortcut that could count multiple IoU>0.5 edges in the four rare overlapping fit+tune records. The scorer was corrected to deterministic one-to-one maximum matching, pinned by test, and the entire oracle rerun. The corrected score above remains a failure.
+
+**Decision:** close V34 before image-model work. No G2, audit/test read, CSV, export, or submission. Evidence: `docs/v34_design_2026-09-14.md`, `scripts/v34_width_profile_oracle.py`, `tests/test_v34_width_profile_oracle.py`, and checksummed `outputs/v34_width_profile_oracle/`. Preserve V17 submission `56103401` at public 0.39. The remaining serious clean architecture path is a separately costed generic-pretrained MaskDINO/RF-DETR-Seg study.
+
+## E045 — V33 balanced foreground-gated Omnipose FPN
+
+**Status: CLOSED AT G2; bounded overfit failed; no tune/audit/test/export/submission.**
+
+Post-run diagnosis of V32 quantified the exact 16-record/144-tile cohort rather than changing the failed experiment: mean foreground fraction is **0.001435916**, median **0.001064301**, 48/144 tiles are empty, and aggregate background:foreground is **695.42:1**. V32's full-tile distance/flow regression and unbalanced boundary BCE therefore diluted positive gradients while its -5 distance initialization already represented almost every background pixel correctly. This explains its all-background attractor but does not reopen V32.
+
+V33 is a separately frozen bounded gate. It keeps the passed V32 exact Omnipose fields and decoder but introduces an explicit foreground logit, foreground-only flow/distance regression, class-balanced foreground/boundary BCE, soft Dice, and a stride-4 ResNet50-FPN with GroupNorm. It may read only the same nine official fit images and 16 annotator records, run at most 2,000 steps, and must reach decoded PQ >=0.85 below 14,336 MiB before a separate full-training design can even be written. It cannot read tune/audit/test or create a CSV.
+
+Design: `docs/v33_design_2026-09-13.md`; runner/stager: `scripts/train_v33_balanced_omnipose_overfit.py`, `scripts/prepare_v33_balanced_omnipose_g2.py`; focused tests pin the scope and objectives.
+
+Two immutable private runs measured the bounded gate. Version 1 trained through step 1,000 but crashed in upstream DBSCAN after zero-range normalization generated NaN sink coordinates. A new fix1 slug caught only that exact `ValueError` fail-closed: affected records received zero predictions and decoder errors could never authorize success. Fix1 reproduced the trajectory exactly through step 500 and reached step 1,000 at PQ **0.041703**, recall 0.087719, 5 TP / 70 FP / 52 FN, three decoder errors, and 1,677.74 MiB peak. The step-1,500 evaluation then hit a second NaN-derived upstream `IndexError`. This is far below the 0.85 overfit gate and decoder errors independently block authorization.
+
+**Decision:** close V33. Do not add broader exception handling, launch a third version, change threshold/loss/architecture/sampling, read tune/audit/test, train the full population, export, or submit. Closure evidence: `outputs/v33_closure_2026-09-13.json` (SHA-256 `275798010247649c787d9c00a633f3551c61589069460955e1653c4ec397147b`). Preserve V17 submission `56103401` at public 0.39.
+
+## E044 — V32 Omnipose exact-field oracle and bounded image-model overfit
+
+**Status: CLOSED AT G2; G1 passed, numerical overfit failed; no tune/audit/test/export/submission.**
+
+The pinned Omnipose v1.0.6 exact-field oracle processed the complete frozen fit+tune population (660 files / 1,087 annotator records / 7,740 GT). Combined PQ was **0.922493** with recall **0.995220** and 7,703/969/37 TP/FP/FN; fit/tune PQ were **0.920227 / 0.935838**. All G1 parity, determinism, finite-output, recall, FP-ratio, split-PQ, and zero-record gates passed, authorizing only G2.
+
+G2 froze 16 fit annotator records, 144 deterministic native 1024 tiles, DeepLabV3-R50 ImageNet-V1, batch one, and at most 2,000 steps. Private Kaggle version 1 exposed a runtime-only batch-one ASPP BatchNorm failure before step 1; its step-0 contract was correct (PQ 0, 57 FN, 726 MiB). The focused fix used frozen BatchNorm running statistics while preserving parameter gradients and was launched under a new immutable fix1 slug after focused tests and quota/identity preflight.
+
+Fix1 completed all 2,000 steps in ~1,068 seconds. Peak allocated memory was **2,820.35 MiB**, well below 14,336 MiB, and every logged loss was finite. Nevertheless decoded PQ was exactly **0.0** at steps 0/250/500/1000/1500/2000, always with zero predictions and 57 FN. The predicted distance field never crossed the frozen `0.0` foreground threshold at aggregate decode. `overfit_passed=false`; `full_training_authorized=false`.
+
+**Decision:** close V32. Do not alter threshold, loss scaling, optimizer, BatchNorm mode, head initialization, decoder, architecture, records, or step budget after observing G2. No tune, audit, test, CSV, export, or submission path was accessed. Preserve V17 submission `56103401` at 0.39. Evidence: `outputs/v32_omnipose_oracle/`, `outputs/v32_g2_kaggle/`, `outputs/v32_g2_kaggle_fix1/`, and `outputs/v32_g2_kaggle_fix1_download/v32_g2_result.json`.
+
+## E043 — V31 expert-spine skeleton-aware distance-transform oracle
+
+**Status: CLOSED AT G1; target oracle failed; no GPU/audit/test/export/submission.**
+
+The contamination-safe CPU oracle evaluated standard DT and expert-spine SDT targets over all frozen fit+tune populations: 660 physical files, 1,087 annotator records, and 7,740 GT annotations. All 7,740 expert spines projected validly. The selected standard-DT threshold 0.85 reached only PQ **0.242650**, recall 0.652584, and 5,051/20,329/2,689 TP/FP/FN because varying-width elongated masks produced many local maxima and watershed fragments. Expert-spine SDT at 0.65 was dramatically better: PQ **0.968866**, SQ 0.992263, recall 0.997804, and 7,723/356/17. Tune alone reached PQ 0.978734.
+
+G1 nevertheless required both representations to reach PQ >=0.97 and recall >=0.99. SDT missed the combined PQ gate by -0.001134; DT failed both gates decisively. `gpu_authorized=false`. No GPU process, audit/test read, checkpoint, CSV, export, or submission occurred. Do not rescue V31 by lowering the gate, changing thresholds/bins/alpha, dropping DT, or training anyway. Full result: `docs/v31_result_2026-09-13.md`; checksummed evidence: `outputs/v31_target_oracle/`.
+
+**Decision:** close V31. The next permitted representation study is a separately frozen Omnipose boundary/distance/flow oracle, not a V31 hyperparameter rescue. Preserve V17 submission `56103401` at 0.39.
+
+---
+
+## E042 — V30 representative-label YOLOv8l-seg at native 2048
+
+**Status: COMPLETE; tune gates failed; audit sealed; no test/export/submission.**
+
+V30 trained official COCO-pretrained YOLOv8l-seg at 2048/mask-ratio-4 for 40 epochs using one maximum-instance annotator record per physical training image (566 files / 4,452 masks). Eight predeclared checkpoints were evaluated on the exact canonical tune population (94 files / 150 annotator records / 1,134 GT) through the frozen V29 grid. Epoch 20 won directly at `iou0.0/confidence/c0.35`: PQ **0.423207**, 626 TP / 234 FP / 508 FN, -0.025495 versus V17. The frozen V17 refiner improved it to `t0.50_c0.20`, PQ **0.438633**, 710 / 385 / 424, still -0.010070 versus V17. `audit_authorized=false`; no audit/test/CSV/export/submission occurred. Checksummed evidence: `outputs/v30_representative_azure/`; full result: `docs/v30_result_2026-09-13.md`.
+
+**Decision:** close V30. Do not add epochs, widen thresholds/NMS, inspect audit, infer test, or upload. Preserve V17 submission `56103401` at 0.39.
+
+---
+
+## E041 — V29 public-regime YOLOv8l-seg reproduction
+
+**Status: COMPLETE; tune gates failed; audit sealed; no test/export/submission.**
+
+A complete 937-record feasibility epoch for COCO-pretrained YOLOv8l-seg at native 2048/mask-ratio-4 passed at 7,813 MiB peak on a T4. The 20-epoch all-annotator run reached best direct tune PQ **0.430489** (670/288/464); the frozen V17 refiner reached **0.446350** (681/277/453), below V17's 0.448703. The attempted continuation did not reach 40 epochs: Ultralytics restored the stored 20-epoch contract and reran only epochs 17-20. No V29 40-epoch result exists, and the continuation helper is retired. Full result: `docs/v30_result_2026-09-13.md`.
+
+**Decision:** close V29. The visible public-0.55 architecture/inference regime was not reproduced. No audit/test/export/submission.
+
+---
+
+## E040 — V28 exact-serving tile-aware proposal utility scorer
+
+**Status: COMPLETE; OOF feasibility passed, frozen tune gates failed; audit sealed; no test/export/submission.**
+
+V28 tested the only continuation justified by V26/V27: learn proposal utility directly on the exact V26 hybrid serving population rather than changing detector training or tile geometry. Four T4s generated a complete cohort over all 566 frozen training files: 14,127 proposals, including every unmatched negative, with 4,638 proposals positive for at least one annotator. Each proposal used raw image, proposal mask, independently refined mask, and refiner-probability crops plus fixed geometry/source scalars. Targets averaged strict-IoU>0.5 utility across all annotator records for the physical file.
+
+Four-fold physical-file-grouped OOF feasibility compared the predeclared product `detector confidence × predicted utility` against detector confidence. The product passed every frozen gate: AUC 0.877062 vs 0.865035 (+0.012028), utility Spearman 0.636480 vs 0.618821 (+0.017659), and cross-fitted expected-PQ surrogate 0.472209 vs 0.464647 (+0.007562). All four held-out folds independently selected product threshold 0.10. This authorized a separately frozen tune experiment, not audit or test.
+
+The final scorer trained exactly six epochs on all 14,127 training proposals; loss decreased 0.653548→0.514295. Checkpoint SHA-256: `a98cd6998d24cf3687e614e2232ca19ffe2d8ac07684882ddd33bf57ed8215cf`. A real four-GPU one-file smoke caught and fixed an online-list/cached-array crop boundary before tune; the rerun passed all shards.
+
+Full tune merged exactly 94 files / 150 annotator records / 1,134 GT. Both regression controls reproduced bit-exact counts:
+
+| candidate | PQ | TP / FP / FN |
+| --- | ---: | --- |
+| V17 control | **0.448703** | 704 / 306 / 430 |
+| V26 hybrid confidence | **0.432869** | 678 / 339 / 456 |
+| V28 fixed product | **0.433172** | 635 / 245 / 499 |
+
+V28 suppressed 94 V26 false positives but also removed 43 true positives. Its +0.000303 PQ movement over V26 is negligible and it remained -0.015531 behind V17. Absolute V17+0.010, matched-hybrid+0.010, and TP>=V17 gates failed; only the FP-control gate passed. `audit_authorized=false`, and the audit command was independently confirmed to refuse before loading audit data.
+
+**Decision:** close V28. The scorer learned enough to improve proposal-level OOF ranking, but the surrogate did not transfer into end-to-end global PQ under disjoint ownership: added precision could not offset recall loss. Do not tune the 0.10 product threshold, replace product with fraction, add epochs, change folds/crops/loss, inspect audit, or create a test exporter post hoc. V17 submission `56103401` remains best at 0.39.
+
+Artifacts: `outputs/v28_utility_azure/`; frozen design: `docs/v28_design_2026-09-13.md`; implementation/tests: `scripts/analyze_v28_utility.py`, `scripts/evaluate_v28_utility.py`, `tests/test_v28_utility.py`, `tests/test_v28_evaluation.py`.
+
+---
+
+## E039 — V27 replicated slicing-aided fine-tuning
+
+**Status: COMPLETE; all substantive tune gates failed in both seeds; audit sealed; no export or submission.**
+
+V27 tested the direct SAHI continuation suggested by V26: fine-tune the exact V17 detector on the same native 1024 slice domain used at inference while retaining full-image samples for large objects. The leakage-safe owner-tile audit found 4,145 positive tiles, 4,288 empty tiles, and 6,593/6,606 labels fully contained in owner tiles; 13 large owner-noncontained labels remained represented through full samples.
+
+Matched datasets contained exactly 5,622 records per epoch. Control repeated each of 937 original annotator records six times. The sliced arm used all 937 full records, all 4,145 positive owner tiles, and 540 deterministic SHA-ranked empty tiles. Tiles were lossless PNG. Both arms used the same V17 warm start, 1024px batch-1 mask-ratio-1 configuration, AdamW schedule, and exactly two epochs / 11,244 optimizer steps. GPU0/GPU1 were controls at seeds 42/20260912; GPU2/GPU3 were sliced arms at the same seeds.
+
+A full-epoch four-T4 smoke consumed exactly 5,622 records per arm, completed finite, projected <=0.916 hours for two epochs, and peaked at <=15,705 MiB. Four full runs completed 11,244 steps each in 2,776-3,310 seconds. Checkpoint SHA-256 values:
+
+- control seed1: `a44be10b684c8836d62629348a9655bfb693fca7b1630f4dfdbeecbd64865f8b`;
+- control seed2: `fbdf9603e0f450028d0c6f159cb087b8b9fd6de8a3f0f4074754da0c87164491`;
+- sliced seed1: `ad64ceba821ae98e68f101e5b1b8612a06466ab21b963b041d306124b108c5bf`;
+- sliced seed2: `972a4593850762e38d9c1148e3be96335278bf7bc2f3eb5ca9a3c7190014736a`.
+
+Each checkpoint was evaluated independently through V26's exact full+9-tile geometry, V17 refiner, and 84-candidate grid on the canonical 94 files / 150 annotator records / 1,134 GT:
+
+| run | selected hybrid | PQ | TP / FP / FN | raw recall | historical rescue |
+| --- | --- | ---: | --- | ---: | ---: |
+| control seed1 | `iou030/t0.35_c0.40` | **0.434496** | 675 / 317 / 459 | 0.795414 | 87 |
+| sliced seed1 | `iou030/t0.45_c0.25` | **0.398535** | 538 / 197 / 596 | 0.729277 | 49 |
+| control seed2 | `iou030/t0.45_c0.45` | **0.429310** | 641 / 284 / 493 | 0.794533 | 84 |
+| sliced seed2 | `iou030/t0.60_c0.25` | **0.406910** | 561 / 214 / 573 | 0.732804 | 48 |
+
+Primary deltas were -0.050168 versus V17, -0.035961 versus matched control, and -0.034334 versus V26's frozen hybrid. Replica sliced-minus-control was -0.022400. The sliced models emitted fewer proposals and reduced both full and sliced raw recall, so the experiment did not calibrate V26 proposals; it erased much of their discovery advantage.
+
+**Decision:** every substantive gate failed (absolute PQ, matched control, V26 improvement, raw recall, historical rescue, replica direction). `audit_authorized=false`; audit command refused before creating artifacts. No test images, CSV, export, or submission. Close this exact two-epoch mixed full+owner-tile detector fine-tuning recipe. Do not add epochs, change empty sampling, alter full/tile ratio, retry LR, or inspect audit post hoc.
+
+V26 remains important mechanistic evidence but not a candidate. Any future continuation must be materially different: a tile-aware proposal scorer/refiner trained directly on cached V26 proposal crops and correctness labels, with a matched control and strict tune/audit gates. It must not be another detector continuation or threshold rescue.
+
+Artifacts: `outputs/v27_sliced_azure/`; frozen design/population: `docs/v27_design_2026-09-12.md`, `outputs/v27_population_audit.json`.
+
+---
+
+## E038 — V26 native sliced proposal discovery
+
+**Status: COMPLETE; recall/rescue gates passed strongly, both PQ gates failed; audit sealed; no export or submission.**
+
+V26 tested the only high-value mechanism left by the post-V25 re-audit: every deployed detector downsamples 2048 images, while 226/228 exact no-proposal tune misses fit wholly inside deterministic overlapping native 1024 owner tiles. The no-training experiment used the exact V17 detector/refiner, full-frame inference plus a 3×3 grid of native 1024 tiles at starts 0/512/1024, four flip views per branch, nearest-center ownership, and cross-tile/branch mask NMS at IoU 0.50. The V17 refiner, 84-candidate grid, constrained ownership, and strict global PQ remained unchanged.
+
+A four-GPU one-file-per-shard smoke passed with 655-799 MiB peak, deterministic signed-cache replay, finite metrics, and projected full tune wall time 0.123 hours. The full four-shard tune run merged exactly 94 physical files / 150 annotator records / 1,134 GT. Control reproduced V17 exactly:
+
+- candidate `control/iou030/t0.45_c0.30`;
+- PQ **0.44870271727943206**;
+- IoU sum 481.0093129235512;
+- TP/FP/FN **704/306/430**.
+
+Tune-only selected results:
+
+| arm | selected | PQ | SQ | TP / FP / FN |
+| --- | --- | ---: | ---: | --- |
+| control | `iou030/t0.45_c0.30` | **0.448703** | 0.683252 | 704 / 306 / 430 |
+| sliced-only diagnostic | `iou070/t0.45_c0.35` | **0.407919** | 0.684956 | 681 / 472 / 453 |
+| hybrid primary | `iou030/t0.45_c0.45` | **0.432869** | 0.686653 | 678 / 339 / 456 |
+
+The mechanism worked emphatically before final selection:
+
+- hybrid raw recall: **0.728395 → 0.805996** (+0.077601; 88 fewer raw misses);
+- bottom-area raw recall: **0.604106 → 0.821114** (+0.217009);
+- historical V6 no-raw-proposal instances rescued: **90/228** (control 19/228 under the V17 checkpoint/cell);
+- sliced-only selected-cell raw recall: 0.781305 and bottom recall 0.865103;
+- hybrid mean best IoU: 0.601143 versus control 0.564111.
+
+The gains did not survive score gating/refinement. Hybrid ended with 26 fewer TP, 33 more FP, and 26 more FN than control. PQ changed by **-0.015834**. Raw-recall, historical-rescue, bottom-recall, and FP-control gates passed; absolute tune and matched-control PQ gates failed.
+
+**Decision:** `audit_authorized=false`. The audit command was explicitly tested and refused before creating a marker. No audit/test images were opened by V26, no CSV exists, and nothing was submitted. Independent verification re-aggregated selected candidates from per-record diagnostics, recomputed raw gates from 3×1,134 per-GT rows, verified all checkpoint/input hashes and **1,880 signed cache files**, and confirmed audit artifacts absent.
+
+Close this exact inference-only slicing configuration. Do not tune tile geometry, ownership, NMS IoU, confidence boost, thresholds, or blend after seeing tune. The result establishes that native slicing solves proposal discovery but exposes a calibration/refinement mismatch: additional valid raw matches are assigned lower/incompatible scores or damaged during downstream refinement while FP also rises. A future continuation requires a separately frozen **sliced fine-tuning or tile-aware proposal-calibration/refiner** experiment with independent evidence; it must not rescue V26 post hoc.
+
+Artifacts: `outputs/v26_sliced_azure/`; frozen design/research: `docs/v26_design_2026-09-12.md`, `docs/breakthrough_reaudit_2026-09-12.md`.
+
+---
+
+## E037 — V25 omitted-rater uncertain-background classification loss
+
+**Status: COMPLETE; every tune gate failed; audit stayed sealed; no export or submission.**
+
+V25 tested the conservative missing-label intervention left open by V24. Instead of promoting disputed cross-rater instances to positives, it preserved all 6,606 original positives and transported 2,659 omitted-rater medoid boxes as uncertainty-only sentinels across 541/937 records. Sentinels passed through the same mosaic/scale/translation transforms, then were removed before TaskAlignedAssigner and mask supervision. Only classification BCE for negative anchor centers inside transformed uncertainty boxes was scaled to 0.1, the best confusing-anchor scale in Background Recalibration Loss; foreground anchors and all other negatives retained weight 1.0. The matched control used identical custom dataset/trainer/model/loss code with weight 1.0.
+
+Pinned-runtime tests proved all 2,659 sentinels were appended pre-augmentation, transformed sentinels remained instance-aligned, sentinels never entered positives/masks, numeric and boolean foreground masks were handled, and a real backward pass kept the same 16,425 negatives while changing only 63 uncertain negatives in the arm. Two initial smoke attempts were archived intact after diagnostic counters—not loss math—failed on Ultralytics numeric `fg_mask`; both dtype sites were corrected and pinned by source regression before the final guarded run.
+
+The full-population four-T4 smoke passed: peaks 14,353/14,775/14,355/14,775 MiB, projected maximum 1.468 hours, exactly 937 loss batches per run. Controls downweighted zero anchors; uncertain arms downweighted 138,066 and 138,665. Four concurrent 20-epoch runs completed finite in 4,439-4,623 seconds, exactly 18,740 loss batches each. Controls downweighted zero; arms downweighted 2,744,220 and 2,748,251 of about 307.3M negative anchors.
+
+Canonical tune-only results:
+
+| run | selected | PQ | SQ | TP / FP / FN |
+| --- | --- | ---: | ---: | --- |
+| control seed 42 | `iou030/t0.35_c0.30` | **0.448441** | 0.683152 | 684 / 266 / 450 |
+| uncertain seed 42 | `iou030/t0.45_c0.40` | **0.443053** | 0.686933 | 664 / 261 / 470 |
+| control seed 20260912 | `iou030/t0.45_c0.30` | **0.442704** | 0.685214 | 680 / 291 / 454 |
+| uncertain seed 20260912 | `iou030/t0.45_c0.40` | **0.438742** | 0.686482 | 665 / 282 / 469 |
+
+The primary arm moved raw proposal recall from 0.733686 to 0.739859 (+0.006173; seven fewer misses) but did not meet the required +0.01. End-to-end TP fell by 20 despite five fewer FP; PQ was -0.005388 versus matched control and -0.005649 versus V17. Replica delta was -0.003962. All four gates were false.
+
+**Decision:** `audit_authorized=false`. Independent verification recomputed selection/gates, verified all checkpoint hashes, and confirmed audit artifacts absent. No test image was read and no CSV exists. Close this exact 0.1 uncertain-background policy. Do not try weights 0/0.01/0.25/0.5, gradient reversal, box expansion, support filtering, V24/V25 blending, added epochs, widened grids, or audit inspection post hoc. V24 and V25 recovered the same seven raw instances by different mechanisms while both reducing end-to-end PQ; omitted-rater uncertainty is not a productive continuation of the current pipeline without a new independently justified mechanism.
+
+Artifacts: `outputs/v25_missing_label_azure/`; frozen design/research: `docs/v25_design_2026-09-12.md`, `docs/v25_research_2026-09-12.md`.
+
+---
+
+## E036 — V24 physical-image consensus-union targets
+
+**Status: COMPLETE; every tune gate failed; audit stayed sealed; no export or submission.**
+
+V24 tested a new project-specific mechanism rather than another architecture swap. A train-only audit showed that 248/566 training files have multiple annotators, and 1,559/2,678 (58.2%) naïve cross-rater IoU>0.5 instance groups appear in only one rater target. The prior all-annotator loader repeats identical pixels with incomplete targets, so true filaments can be supervised as background. This matches missing-annotation findings from Soft Sampling (Wu et al., 2019), Background Recalibration Loss (Zhang et al., 2020), and multi-expert detection work (Pham et al., 2023; Campi et al., 2026).
+
+The frozen constructor used descending-IoU constrained union-find: clusters merged only when rater sets were disjoint, preventing the one observed transitive bridge from collapsing two same-rater instances. It retained one original medoid polygon per cluster, never synthetic union geometry. The arm had 5,127 physical targets and 9,265 repeated labels over the same 937 sample records; the control retained 6,606 incomplete labels. Pixels, record order/weighting, V17 warm start, 896px batch-1 mask-ratio-1 schedule, augmentations, and two seeds were matched.
+
+A full-population four-T4 smoke passed the launch gate: all finite, projected 1.43-1.48 hours, external peaks 11,775-14,789 MiB below 15,872 MiB. Four concurrent 20-epoch runs then completed in 4,404-4,723 seconds. Full-run peaks reached 15,537/15,773/15,873/15,817 MiB; one rank exceeded the smoke launch threshold by 1 MiB, but all runs completed without OOM and checkpoint hashes verified.
+
+Canonical tune-only evaluation used the V17 proposal-centered refiner and frozen 84-candidate grid:
+
+| run | selected | PQ | SQ | TP / FP / FN |
+| --- | --- | ---: | ---: | --- |
+| control seed 42 | `iou030/t0.35_c0.30` | **0.448441** | 0.683152 | 684 / 266 / 450 |
+| consensus seed 42 | `iou030/t0.50_c0.40` | **0.445858** | 0.683607 | 707 / 327 / 427 |
+| control seed 20260912 | `iou030/t0.45_c0.30` | **0.442704** | 0.685214 | 680 / 291 / 454 |
+| consensus seed 20260912 | `iou030/t0.45_c0.40` | **0.441403** | 0.682707 | 707 / 346 / 427 |
+
+The mechanism moved primary raw recall from 0.733686 to 0.739859 (+0.006173; seven fewer missed GT) and mean best IoU +0.007379. It did not reach the frozen +0.01 recall gate, and increased FP enough that tune PQ fell -0.002583 versus matched control and -0.002844 versus V17. Replica consensus-minus-control was -0.001301. Consequently all gates were false: absolute tune, matched control, raw recall, and replication direction.
+
+**Decision:** `audit_authorized=false`. Audit markers/results are absent, no test images were read, no CSV exists, and live Kaggle history remains unchanged. Close this exact consensus-union configuration. Do not inspect audit, support-filter singleton clusters, change cluster IoU, weight labels, add epochs, blend detectors, or export post hoc. A future missing-label experiment requires a materially different predeclared loss/uncertainty mechanism, not a rescue of V24.
+
+Artifacts and independent verification: `outputs/v24_consensus_azure/`. Frozen design/research: `docs/v24_design_2026-09-12.md`, `docs/v24_research_2026-09-12.md`.
+
+---
+
+## E035 — V23 radial flattening + CLAHE detector-input ablation
+
+**Status: CLOSED AT THE PREDECLARED RESOURCE GATE; no full training, evaluation, export, or submission.**
+
+V23 was the bounded follow-up justified by the re-audit of the opaque public 0.55 notebook and legitimate solar-imaging literature. It prepared a deterministic competition-only transform (solar-disk localization, radial-median background flattening, robust p2-p98 scaling, mild Gaussian smoothing, CLAHE, and off-disk zeroing) for all 707 labeled files. Source/checkpoint identities and both matched YOLO populations verified exactly: 566 train files, 937 independent annotator records, and 6,606 annotations. The transformed dataset identity is `b1bc04138a53e26b9d41414b758309ae289265cb7ffe98605c1cbedd9201735d`.
+
+The original 1024 training setup failed the frozen `<14 GiB` headroom requirement at global batches 4, 2, and 1, so the predeclared matched fallback used `imgsz=896`, batch 1, one independent raw/transformed arm on each of four T4s (seeds 42 and 20260912). All four full-population one-epoch smokes completed with finite results in 258.8-262.2 seconds, projecting 1.44-1.46 hours for 20 epochs. External `nvidia-smi` monitoring nevertheless measured these peaks:
+
+| GPU / arm | peak MiB | strict gate |
+| --- | ---: | ---: |
+| 0 / raw seed 42 | 14,403 | <14,336 |
+| 1 / raw seed 20260912 | 14,775 | <14,336 |
+| 2 / transformed seed 42 | 14,355 | <14,336 |
+| 3 / transformed seed 20260912 | 14,671 | <14,336 |
+
+All four arms exceeded the safety gate; batch 1 is already the floor. Therefore `full_training_authorized=false`, and tune/audit/test were never opened. No checkpoint candidate or CSV was produced. Lowering resolution again, weakening the memory gate after observing it, or retrying the 1024 configurations would violate the frozen protocol and would further confound the intended pixel-only ablation.
+
+**Decision:** close V23 as resource-infeasible on the available T4 configuration. Keep V17 submission `56103401` as the public best at 0.39. Do not train, evaluate, export, blend, or submit V23 without a new predeclared resource plan and mechanism-specific hypothesis. The shared Azure VM remains running and was not deallocated because it is shared with Rogii.
+
+Compact evidence: `outputs/v23_resource_gate_azure/`; frozen design: `docs/v23_design_2026-09-12.md`.
+
+---
+
+## E034 — V22 official PointRend Mask R-CNN R50-FPN
+
+**Status: COMPLETE; both V17 bars failed; no export and no submission.**
+
+V22 tested the strongest still-unrun paper-backed architecture hypothesis: a direct two-stage RPN/RoIAlign detector with a 224x224 adaptive PointRend mask renderer. This was genuinely distinct from the YOLO/refiner family and had direct full-disk H-alpha Mask R-CNN precedent. It used the official COCO PointRend R50-FPN checkpoint (SHA-256 `2a658c57f565b1badc0e324790b86d50d60f2c30139a85e33b93d0e4746897af`), robust disk-normalized competition images, and all 937 training annotator records. No external solar labels or weights were used.
+
+The final provenance-correct four-T4 run executed exactly 20 epochs / 4,700 global steps. A 100-step probe measured 0.434 s/step and 2.562 GiB peak; the exact continuation ran 4,600 steps in 1,812.94 s with 2.565 GiB peak. Two pre-evaluation controller defects (rank-local metric access and manual checkpoint off-by-one) were corrected; invalid runs were archived and never scored. Final checkpoint counters were asserted at epochs 5/10/15/20.
+
+Frozen tune selection over those checkpoints and confidence 0.05-0.50 chose **epoch 15 / confidence 0.50**. Audit was opened once for that pair:
+
+| split | PQ | SQ | RQ | TP / FP / FN |
+| --- | ---: | ---: | ---: | --- |
+| tune | **0.353718** | 0.648661 | 0.545304 | 659 / 624 / 475 |
+| audit | **0.403023** | 0.656471 | 0.613924 | 291 / 198 / 168 |
+
+V22 missed V17's 0.448703 / 0.470763 bars by **-0.094985 / -0.067740**. It is -0.004473 tune and +0.005784 audit versus V20 CondInst, so it does not establish a better architecture. `export_authorized=false`; no CSV exists. Selected checkpoint SHA-256: `05f067b521ef61ffbc0e865bb1a1e25059562e8f314bf69a565d45b47de0c25e`. Evaluation SHA-256: `0fc1dea0432ab6d4720bf2a2576942f48353d5a5a7e33b5f3cdc5e44748b33fc`. Independent verification recomputed selection and PQ/SQ/RQ, checked the audit marker, canonical populations, checkpoint hash, false gate, and absence of CSV.
+
+**Decision:** close this PointRend configuration. High-resolution rendering did not overcome poor recognition: tune FP=624 and FN=475 remain too high. Do not add epochs, widen confidence past the selected grid edge, change anchors post hoc, export, or submit. A future region-based experiment requires a new mechanism that first improves proposal classification/recall; boundary refinement alone is not supported.
+
+Artifacts: `outputs/v22_pointrend_azure/`. Frozen design and citations: `docs/v22_design_2026-09-12.md`.
+
+---
+
+## E033 — V21 full-data refit of the frozen V17 recipe
+
+**Status: COMPLETE; submitted once as 56170647; public score 0.38.**
+
+V21 executes the final-fit experiment predeclared in the 6 September research:
+refit V17's selected detector/refiner recipe using all approved data, changing no
+selected hyperparameters. Population is **707 physical files / 1,154 independent
+annotator records / 8,199 annotations**. Since every labeled image is fitted,
+V21 has no held-out local score and must not be described as a local improvement.
+
+Completed detector stages:
+
+| stage | fixed duration | elapsed | checkpoint SHA-256 |
+| --- | ---: | ---: | --- |
+| V6 base schedule from original `yolo11s-seg.pt` | 80 epochs | 4,439.94 s | `9bc4fcadc2fdf2f70d7f1d6411827bdc3f734b9012fadb9f4ea330a8739708c4` |
+| V16 selected `mask_ratio=1` continuation | 20 epochs | 2,131.14 s | `5cc803e4f3ca334c471fc1012ef1e27a142b59b085831fc09d5e35d621ca5629` |
+
+Completed refiner stages:
+
+- ImageNet-initialized GT-crop base recipe: 8/8 epochs.
+- Canonical low-LR continuation: 3/3 epochs, preserving E014's actual selected
+  duration rather than its four-epoch search budget.
+
+The detached continuation completed successfully. It generated proposals for all
+707 files, matched **7,709** proposal-centered samples from all 8,199 annotations,
+and completed four proposal-centered epochs. Final refiner SHA-256:
+`26013cec76b7c329f9891fdbf90def19abc60a696d134273837cf5dc3f5f0792`.
+The wrapper wrote atomic status `complete`, verified detector/refiner identities,
+and copied all compact artifacts to persistent storage at
+`~/solar-filament-2026/outputs/v21_full_refit_persistent/`.
+
+Test inference then ran in four deterministic 45-image shards, one per T4. All
+shards finished in **72–77 seconds**. The frozen V17 recipe produced **1,091 masks
+across 174 populated images**. The merged CSV passed the repository validator and
+an independent full decoder: all IDs known/sequential, every RLE decodes to
+2048x2048, area >=20, and no within-image overlap.
+
+Submission package:
+`submission_ready/v21_full_refit_2026-09-11/`. CSV SHA-256:
+`98f58d2e115ebb6ae9c4f270aa4f03e46d75c279ad6a5c5c09afefb9121e9016`.
+V21 was submitted exactly once as **56170647** and scored **0.38**, below V17's
+0.39. A deterministic structural comparison (`scripts/compare_submissions.py`)
+finds 994 matched masks, 221 V17-only masks, and 97 V21-only masks: V21 has 124
+fewer masks overall and is sparser on 83 images. Since every labeled file was
+fitted, V21 has no held-out local PQ claim and there is no leakage-free population
+on which to select a V17/V21 hybrid. Prior proposal-union evidence is negative, so
+no hybrid is authorized and V17 remains the submission baseline. Do not re-upload
+V21.
+
+Full training/detachment/export provenance:
+[`v21_overnight_handoff_2026-09-11.md`](v21_overnight_handoff_2026-09-11.md).
+
+---
+
+## E032 — V20 competition-only CondInst R50-FPN
+
+**Status: COMPLETE; both V17 bars failed; later submitted by explicit user override for measurement and scored 0.30.**
+
+V20 tested the highest-ranked post-V19 research hypothesis: an anchor-free
+CondInst R50-FPN using dynamic per-instance masks, relative coordinates, a P2
+stride-4 mask branch, auxiliary semantic focal loss, robust per-image solar-disk
+normalization, and all approved annotator records. No external solar labels or
+weights were used; initialization was the public COCO CondInst R50 1x checkpoint
+(SHA-256 `dacbe466377098c90189d9e3464013b84809eed5b0ace71fa87a5876db4f6972`).
+
+The Azure runtime was isolated under `/mnt/solar-v20-condinst` because the shared
+VM root disk was 99% full; `/mnt` provided 2.6 TiB free without deleting shared
+Rogii data. Detectron2 `a2f4a877` and AdelaiDet `5e19cb17` were pinned. The
+worst-case 26-instance smoke passed at 1.9145 GiB allocated memory. A four-T4
+100-step probe measured 0.5007 s/global step and projected 0.654 hours. Full DDP
+training resumed from that checkpoint and completed 4,700 steps / 20 epochs in
+2,054 seconds (34.2 minutes), with rank-0 peak allocation 2.353 GiB and final
+reported loss about 1.14.
+
+Canonical selection evaluated fixed epochs 5/10/15/20 over confidence 0.05-0.50
+on tune. An optimized cached-RLE scorer was proven exactly equal to the original
+mask-array count implementation before the four checkpoints were evaluated in
+parallel on GPUs 0-3. Audit was then opened once for the selected pair only.
+Tune selected **epoch 10 / confidence 0.50**:
+
+| split | files / records / GT | PQ | TP / FP / FN |
+| --- | --- | ---: | --- |
+| tune | 94 / 150 / 1,134 | **0.358191** | 557 / 300 / 577 |
+| audit | 47 / 67 / 459 | **0.397240** | 244 / 92 / 215 |
+
+The candidate improved over V19 E031 by +0.023064 tune / +0.038092 audit, but
+missed V17's required 0.448703 / 0.470763 bars by **-0.090512 / -0.073523**.
+`export_authorized=false`; the gated workflow created no submission CSV. The user
+later explicitly authorized a measurement override: `submission_v20.csv` was
+uploaded once at 2026-09-11 12:51:11 UTC and scored **0.30**, confirming the local
+gate decision. Do not re-upload it.
+Selected checkpoint SHA-256:
+`e18bc02c655f52d7eccf8c16ea6c919cbc2d286f42452746a3500b9bfa797a78`.
+Report SHA-256:
+`13bff07bdb684fd506f9dbd1cf0e5a528950f0034c9bf4d77ddeffba0816c37d`.
+Pulled artifacts and independent verification are under
+`outputs/v20_condinst_azure/`.
+
+**Decision:** CondInst is a real improvement over the failed Mask2Former family,
+but remains materially behind V17 and is not submission-ready. Keep V17/public
+0.39. Do not export, submit, or blindly extend V20; a follow-up requires a new
+specific hypothesis rather than more epochs or confidence sweep expansion.
+
+---
+
+
+## E031 — Controlled V19 all-annotator retrain and canonical calibration
+
+**Status: COMPLETE; both bars failed; no export and no submission.**
+
+The explicitly approved final controlled V19 run completed on Azure at
+2026-09-11 09:11:50 UTC. It changed only the audited data-loader population:
+**937 train annotator records / 6,606 annotations / 566 files**, retaining every
+independent annotation record instead of collapsing duplicate filenames. The
+same 20 epochs, 1024px train/eval size, optimizer, warmup/cosine schedule, model,
+and tune/audit protocol were retained.
+
+The default 0.50 checkpoint selected at epoch 15 reached **0.259899 tune PQ** and
+**0.279828 audit PQ**. Canonical tune-only calibration over the frozen 0.50-0.95
+grid selected threshold **0.90**:
+
+| split | files / records / GT | PQ | TP / FP / FN |
+| --- | --- | ---: | --- |
+| tune | 94 / 150 / 1,134 | **0.335127** | 504 / 238 / 630 |
+| audit | 47 / 67 / 459 | **0.359148** | 213 / 78 / 246 |
+
+Calibration improved tune PQ by **+0.075228**, mainly by suppressing false
+positives, and all-annotator training improved over E030's calibrated
+0.302220 / 0.305922. It still missed V17's required 0.448703 / 0.470763 by
+**-0.113576 tune / -0.111615 audit**. `export_authorized=false`.
+
+Pulled artifacts are under
+`outputs/v19_mask2former_azure_all_annotators/`. Checkpoint SHA-256 is
+`9d59f379cf07430a424650527cacbbfce07494337b566ec20ba0959a84e34501`;
+calibration artifact SHA-256 is
+`27a094ad36edb47f40fe2adada1f9fb2738e26e8a749fdf652d3b7be8a975022`.
+Independent checks confirmed the exact canonical populations, 20 epochs,
+checkpoint identity, both frozen bars, false gate, and absence of any CSV.
+Live Kaggle history contains no V19 upload and still shows V17 `56103401` at
+0.39. The exporter was hardened to require this canonical artifact and use its
+exact checkpoint hash, selected threshold, and evaluated resolution; the bypass
+flag was removed. Focused V19 workflow tests: **42 passed**.
+
+**Decision:** the controlled remaining V19 hypothesis is closed. Keep V17/public
+0.39. Do not export, submit, extend epochs, or launch a blind Mask2Former sweep
+without a new evidence-backed hypothesis. The shared Azure VM is idle but remains
+allocated pending confirmation that deallocation is safe for Rogii.
+
+---
+
+2026-09-11 latest: **E031 is complete.** The all-annotator V19 retrain improved
+canonical calibrated PQ to **0.335127 tune / 0.359148 audit**, but both V17 gates
+failed. No CSV was generated and Kaggle confirms no V19 submission.
+
+## E030 — Fixed V19 retrain + canonical all-annotator threshold calibration
+
+**Status: COMPLETE; both submission bars failed; no export and no submission.**
+
+The Azure retrain with E029's 1024px model-selection fix and warmup/cosine LR
+schedule completed all 20 epochs. Its original artifact improved to best tune PQ
+**0.266068** (epoch 7) and audit PQ **0.282324**, confirming that the fixes mattered,
+but an accounting audit found one more defect: `build_hf_dataset` mapped each
+filename to one arbitrary COCO `image_id`. Duplicate filenames are independent
+annotator records, so this changed **both training and evaluation**: V19 optimized
+566 file records instead of 937 annotator records and scored only 728 tune GT
+rather than the canonical 1,134 used by V9-V18 and by the V17 submission bar.
+
+The loader now retains every annotator record, and export authorization requires
+both V17 bars (tune 0.448703, audit 0.470763). To avoid another training run before
+measuring the checkpoint correctly, `scripts/calibrate_v19_threshold.py` predicted
+each held-out file once, evaluated the same prediction against every annotator,
+and swept only the evidence-backed stricter-confidence direction, 0.50-0.95 in
+0.05 increments. Threshold selection used tune only; audit was evaluated once at
+the selected threshold.
+
+Population guards matched exactly:
+
+| split | files | annotator records | GT instances |
+| --- | ---: | ---: | ---: |
+| tune | 94 | 150 | 1,134 |
+| audit | 47 | 67 | 459 |
+
+Tune PQ rose monotonically from **0.264025 at 0.50** to a maximum **0.302220 at
+0.75**, then declined (0.297666 at 0.80, 0.133160 at 0.95). At threshold 0.75,
+tune counts were TP=517, FP=458, FN=617; held-out audit PQ was **0.305922** with
+TP=210, FP=195, FN=249. Calibration therefore helps (+0.038194 tune PQ versus the
+default), but does not make V19 competitive: margins to the bars are -0.146483
+tune and -0.164841 audit. `export_authorized=false`.
+
+Checkpoint SHA-256:
+`fd5c3abe7da714bae66489932bd6334b502978aefb4ff7616ef5fa8c6928ade6`.
+Artifact:
+`outputs/v19_mask2former_azure_full/v19_threshold_calibration.json`, SHA-256
+`1fc32020639c6e164fa66d947610a117a1ce2676c98aae1863c9d0b96cb45522`.
+The real export-gate smoke test refused this artifact before creating a CSV.
+Focused V19 tests: **36 passed**. Full locally supported suite: **421 passed,
+1 skipped** (`tests/test_pq_eval.py` requires local PyTorch).
+
+**Decision:** keep V17/public 0.39 and do not export this checkpoint. The loader
+fix defines one controlled remaining experiment—retrain on all 937 annotator
+records, changing nothing else, then repeat the same canonical tune/audit
+protocol—but it requires explicit approval for another paid GPU run. Do not
+substitute more epochs or a blind hyperparameter sweep.
+
+---
 
 Record every experiment here before and after running it.
 

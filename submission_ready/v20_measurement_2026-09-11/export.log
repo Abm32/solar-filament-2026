@@ -1,0 +1,39 @@
+/mnt/solar-v20-condinst/site-packages/adet/modeling/MEInst/MaskEncoding.py:10: FutureWarning: Decorating classes is deprecated and will be disabled in future versions. You should only decorate functions or methods. To preserve the current behavior of class decoration, you can directly decorate the `__init__` method and nothing else.
+  class PCAMaskEncoding(nn.Module):
+Config '/mnt/solar-v20-condinst/src/AdelaiDet/configs/CondInst/MS_R_50_1x.yaml' has no VERSION. Assuming it to be compatible with latest v2.
+/mnt/solar-v20-condinst/site-packages/fvcore/common/checkpoint.py:252: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  return torch.load(f, map_location=torch.device("cpu"))
+/home/azureuser/solar-filament-2026/.venv/lib/python3.10/site-packages/torch/functional.py:513: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at ../aten/src/ATen/native/TensorShape.cpp:3609.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+exported 20/180 images
+exported 40/180 images
+exported 60/180 images
+exported 80/180 images
+exported 100/180 images
+exported 120/180 images
+exported 140/180 images
+exported 160/180 images
+exported 180/180 images
+{
+  "status": "measurement_override_export",
+  "explicitly_not_gate_authorized": true,
+  "user_override_recorded": true,
+  "checkpoint": "model_0002349.pth",
+  "checkpoint_sha256": "e18bc02c655f52d7eccf8c16ea6c919cbc2d286f42452746a3500b9bfa797a78",
+  "evaluation_sha256": "13bff07bdb684fd506f9dbd1cf0e5a528950f0034c9bf4d77ddeffba0816c37d",
+  "confidence": 0.5,
+  "test_images": 180,
+  "rows": 981,
+  "populated_images": 176,
+  "empty_images": [
+    "20151204133714Th.jpeg",
+    "20170708164010Mh.jpeg",
+    "20200310113230Ch.jpeg",
+    "20211214174010Mh.jpeg"
+  ],
+  "area_min": 30,
+  "area_median": 1764.0,
+  "area_max": 28850,
+  "csv_sha256": "247e1d0a7cfc0ca6ded5843e6549db8478ab71fce170d1ac210ccd55e6f2814e",
+  "seconds": 150.84769075799704
+}

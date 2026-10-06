@@ -1,0 +1,925 @@
+{
+  "status": "measurement_override_export",
+  "explicitly_not_gate_authorized": true,
+  "user_override_recorded": true,
+  "checkpoint": "model_0002349.pth",
+  "checkpoint_sha256": "e18bc02c655f52d7eccf8c16ea6c919cbc2d286f42452746a3500b9bfa797a78",
+  "evaluation_sha256": "13bff07bdb684fd506f9dbd1cf0e5a528950f0034c9bf4d77ddeffba0816c37d",
+  "confidence": 0.5,
+  "test_images": 180,
+  "rows": 981,
+  "populated_images": 176,
+  "empty_images": [
+    "20151204133714Th.jpeg",
+    "20170708164010Mh.jpeg",
+    "20200310113230Ch.jpeg",
+    "20211214174010Mh.jpeg"
+  ],
+  "area_min": 30,
+  "area_median": 1764.0,
+  "area_max": 28850,
+  "csv_sha256": "247e1d0a7cfc0ca6ded5843e6549db8478ab71fce170d1ac210ccd55e6f2814e",
+  "seconds": 150.84769075799704,
+  "coverage": [
+    {
+      "file_name": "20110120105534Ch.jpeg",
+      "raw_predictions": 25,
+      "accepted_predictions": 2
+    },
+    {
+      "file_name": "20110130110334Ch.jpeg",
+      "raw_predictions": 14,
+      "accepted_predictions": 1
+    },
+    {
+      "file_name": "20110214175414Mh.jpeg",
+      "raw_predictions": 39,
+      "accepted_predictions": 3
+    },
+    {
+      "file_name": "20110329082654Uh.jpeg",
+      "raw_predictions": 62,
+      "accepted_predictions": 8
+    },
+    {
+      "file_name": "20110408083214Th.jpeg",
+      "raw_predictions": 57,
+      "accepted_predictions": 7
+    },
+    {
+      "file_name": "20110424064534Lh.jpeg",
+      "raw_predictions": 35,
+      "accepted_predictions": 7
+    },
+    {
+      "file_name": "20110429120534Ch.jpeg",
+      "raw_predictions": 72,
+      "accepted_predictions": 9
+    },
+    {
+      "file_name": "20110529063154Uh.jpeg",
+      "raw_predictions": 36,
+      "accepted_predictions": 2
+    },
+    {
+      "file_name": "20110531070514Th.jpeg",
+      "raw_predictions": 35,
+      "accepted_predictions": 6
+    },
+    {
+      "file_name": "20110603123034Ch.jpeg",
+      "raw_predictions": 42,
+      "accepted_predictions": 9
+    },
+    {
+      "file_name": "20110706164014Mh.jpeg",
+      "raw_predictions": 16,
+      "accepted_predictions": 3
+    },
+    {
+      "file_name": "20110811121534Ch.jpeg",
+      "raw_predictions": 62,
+      "accepted_predictions": 7
+    },
+    {
+      "file_name": "20110819131834Ch.jpeg",
+      "raw_predictions": 27,
+      "accepted_predictions": 5
+    },
+    {
+      "file_name": "20110827141254Bh.jpeg",
+      "raw_predictions": 31,
+      "accepted_predictions": 3
+    },
+    {
+      "file_name": "20110912142254Bh.jpeg",
+      "raw_predictions": 43,
+      "accepted_predictions": 5
+    },
+    {
+      "file_name": "20111015063134Lh.jpeg",
+      "raw_predictions": 74,
+      "accepted_predictions": 8
+    },
+    {
+      "file_name": "20111017113714Th.jpeg",
+      "raw_predictions": 65,
+      "accepted_predictions": 7
+    },
+    {
+      "file_name": "20111114063134Lh.jpeg",
+      "raw_predictions": 55,
+      "accepted_predictions": 11
+    },
+    {
+      "file_name": "20111122063134Lh.jpeg",
+      "raw_predictions": 81,
+      "accepted_predictions": 10
+    },
+    {
+      "file_name": "20111124153054Bh.jpeg",
+      "raw_predictions": 35,
+      "accepted_predictions": 9
+    },
+    {
+      "file_name": "20111128175514Mh.jpeg",
+      "raw_predictions": 59,
+      "accepted_predictions": 9
+    },
+    {
+      "file_name": "20111208173814Mh.jpeg",
+      "raw_predictions": 68,
+      "accepted_predictions": 10
+    },
+    {
+      "file_name": "20111216103234Ch.jpeg",
+      "raw_predictions": 36,
+      "accepted_predictions": 8
+    },
+    {
+      "file_name": "20111216174914Mh.jpeg",
+      "raw_predictions": 43,
+      "accepted_predictions": 4
+    },
+    {
+      "file_name": "20120107063134Lh.jpeg",
+      "raw_predictions": 62,
+      "accepted_predictions": 10
+    },
+    {
+      "file_name": "20120111191454Bh.jpeg",
+      "raw_predictions": 68,
+      "accepted_predictions": 9
+    },
+    {
+      "file_name": "20120115063134Lh.jpeg",
+      "raw_predictions": 68,
+      "accepted_predictions": 7
+    },
+    {
+      "file_name": "20120218152654Bh.jpeg",
+      "raw_predictions": 32,
+      "accepted_predictions": 6
+    },
+    {
+      "file_name": "20120402105814Th.jpeg",
+      "raw_predictions": 42,
+      "accepted_predictions": 9
+    },
+    {
+      "file_name": "20120402164214Mh.jpeg",
+      "raw_predictions": 44,
+      "accepted_predictions": 6
+    },
+    {
+      "file_name": "20120405130014Th.jpeg",
+      "raw_predictions": 30,
+      "accepted_predictions": 6
+    },
+    {
+      "file_name": "20120512063234Lh.jpeg",
+      "raw_predictions": 73,
+      "accepted_predictions": 8
+    },
+    {
+      "file_name": "20120528063154Uh.jpeg",
+      "raw_predictions": 40,
+      "accepted_predictions": 5
+    },
+    {
+      "file_name": "20120606063154Uh.jpeg",
+      "raw_predictions": 32,
+      "accepted_predictions": 2
+    },
+    {
+      "file_name": "20120622063154Uh.jpeg",
+      "raw_predictions": 34,
+      "accepted_predictions": 5
+    },
+    {
+      "file_name": "20120707070914Th.jpeg",
+      "raw_predictions": 51,
+      "accepted_predictions": 7
+    },
+    {
+      "file_name": "20120710063134Lh.jpeg",
+      "raw_predictions": 52,
+      "accepted_predictions": 5
+    },
+    {
+      "file_name": "20120730072014Th.jpeg",
+      "raw_predictions": 56,
+      "accepted_predictions": 7
+    },
+    {
+      "file_name": "20120813063134Lh.jpeg",
+      "raw_predictions": 45,
+      "accepted_predictions": 5
+    },
+    {
+      "file_name": "20120930063534Lh.jpeg",
+      "raw_predictions": 48,
+      "accepted_predictions": 8
+    },
+    {
+      "file_name": "20121024073354Uh.jpeg",
+      "raw_predictions": 45,
+      "accepted_predictions": 8
+    },
+    {
+      "file_name": "20121125063154Uh.jpeg",
+      "raw_predictions": 59,
+      "accepted_predictions": 5
+    },
+    {
+      "file_name": "20121203063334Lh.jpeg",
+      "raw_predictions": 54,
+      "accepted_predictions": 5
+    },
+    {
+      "file_name": "20121206063154Uh.jpeg",
+      "raw_predictions": 41,
+      "accepted_predictions": 8
+    },
+    {
+      "file_name": "20121216154954Bh.jpeg",
+      "raw_predictions": 50,
+      "accepted_predictions": 5
+    },
+    {
+      "file_name": "20121220110614Th.jpeg",
+      "raw_predictions": 57,
+      "accepted_predictions": 4
+    },
+    {
+      "file_name": "20121229085414Th.jpeg",
+      "raw_predictions": 55,
+      "accepted_predictions": 3
+    },
+    {
+      "file_name": "20130104104234Ch.jpeg",
+      "raw_predictions": 64,
+      "accepted_predictions": 7
+    },
+    {
+      "file_name": "20130110085614Th.jpeg",
+      "raw_predictions": 66,
+      "accepted_predictions": 8
+    },
+    {
+      "file_name": "20130206063154Uh.jpeg",
+      "raw_predictions": 50,
+      "accepted_predictions": 8
+    },
+    {
+      "file_name": "20130208063134Lh.jpeg",
+      "raw_predictions": 37,
+      "accepted_predictions": 9
+    },
+    {
+      "file_name": "20130213063454Uh.jpeg",
+      "raw_predictions": 14,
+      "accepted_predictions": 3
+    },
+    {
+      "file_name": "20130310063154Uh.jpeg",
+      "raw_predictions": 42,
+      "accepted_predictions": 3
+    },
+    {
+      "file_name": "20130315063154Uh.jpeg",
+      "raw_predictions": 28,
+      "accepted_predictions": 5
+    },
+    {
+      "file_name": "20130328063154Uh.jpeg",
+      "raw_predictions": 19,
+      "accepted_predictions": 3
+    },
+    {
+      "file_name": "20130521063134Lh.jpeg",
+      "raw_predictions": 45,
+      "accepted_predictions": 6
+    },
+    {
+      "file_name": "20130526063134Lh.jpeg",
+      "raw_predictions": 62,
+      "accepted_predictions": 7
+    },
+    {
+      "file_name": "20130530133654Bh.jpeg",
+      "raw_predictions": 65,
+      "accepted_predictions": 12
+    },
+    {
+      "file_name": "20130603063154Uh.jpeg",
+      "raw_predictions": 26,
+      "accepted_predictions": 2
+    },
+    {
+      "file_name": "20130606133454Bh.jpeg",
+      "raw_predictions": 35,
+      "accepted_predictions": 7
+    },
+    {
+      "file_name": "20130609133454Bh.jpeg",
+      "raw_predictions": 52,
+      "accepted_predictions": 10
+    },
+    {
+      "file_name": "20130627063134Lh.jpeg",
+      "raw_predictions": 73,
+      "accepted_predictions": 8
+    },
+    {
+      "file_name": "20130702070714Th.jpeg",
+      "raw_predictions": 35,
+      "accepted_predictions": 11
+    },
+    {
+      "file_name": "20130811121434Ch.jpeg",
+      "raw_predictions": 42,
+      "accepted_predictions": 5
+    },
+    {
+      "file_name": "20130825141154Bh.jpeg",
+      "raw_predictions": 35,
+      "accepted_predictions": 7
+    },
+    {
+      "file_name": "20131027185354Bh.jpeg",
+      "raw_predictions": 76,
+      "accepted_predictions": 8
+    },
+    {
+      "file_name": "20131027223034Lh.jpeg",
+      "raw_predictions": 55,
+      "accepted_predictions": 6
+    },
+    {
+      "file_name": "20131110185354Bh.jpeg",
+      "raw_predictions": 58,
+      "accepted_predictions": 10
+    },
+    {
+      "file_name": "20131217192134Ch.jpeg",
+      "raw_predictions": 65,
+      "accepted_predictions": 7
+    },
+    {
+      "file_name": "20131230192154Bh.jpeg",
+      "raw_predictions": 64,
+      "accepted_predictions": 6
+    },
+    {
+      "file_name": "20140118180214Mh.jpeg",
+      "raw_predictions": 44,
+      "accepted_predictions": 8
+    },
+    {
+      "file_name": "20140309170314Mh.jpeg",
+      "raw_predictions": 47,
+      "accepted_predictions": 7
+    },
+    {
+      "file_name": "20140322200714Mh.jpeg",
+      "raw_predictions": 90,
+      "accepted_predictions": 11
+    },
+    {
+      "file_name": "20140403081714Th.jpeg",
+      "raw_predictions": 65,
+      "accepted_predictions": 9
+    },
+    {
+      "file_name": "20140410195814Mh.jpeg",
+      "raw_predictions": 33,
+      "accepted_predictions": 6
+    },
+    {
+      "file_name": "20140420195854Bh.jpeg",
+      "raw_predictions": 100,
+      "accepted_predictions": 11
+    },
+    {
+      "file_name": "20140514195854Bh.jpeg",
+      "raw_predictions": 71,
+      "accepted_predictions": 10
+    },
+    {
+      "file_name": "20140516234034Lh.jpeg",
+      "raw_predictions": 71,
+      "accepted_predictions": 8
+    },
+    {
+      "file_name": "20140519195834Ch.jpeg",
+      "raw_predictions": 82,
+      "accepted_predictions": 12
+    },
+    {
+      "file_name": "20140520200054Bh.jpeg",
+      "raw_predictions": 37,
+      "accepted_predictions": 9
+    },
+    {
+      "file_name": "20140526195834Ch.jpeg",
+      "raw_predictions": 60,
+      "accepted_predictions": 8
+    },
+    {
+      "file_name": "20140629195814Mh.jpeg",
+      "raw_predictions": 16,
+      "accepted_predictions": 3
+    },
+    {
+      "file_name": "20140707023654Uh.jpeg",
+      "raw_predictions": 78,
+      "accepted_predictions": 13
+    },
+    {
+      "file_name": "20140710020754Uh.jpeg",
+      "raw_predictions": 48,
+      "accepted_predictions": 7
+    },
+    {
+      "file_name": "20140828080414Th.jpeg",
+      "raw_predictions": 72,
+      "accepted_predictions": 10
+    },
+    {
+      "file_name": "20140907195814Mh.jpeg",
+      "raw_predictions": 34,
+      "accepted_predictions": 6
+    },
+    {
+      "file_name": "20140925195834Ch.jpeg",
+      "raw_predictions": 82,
+      "accepted_predictions": 11
+    },
+    {
+      "file_name": "20141009195814Mh.jpeg",
+      "raw_predictions": 32,
+      "accepted_predictions": 11
+    },
+    {
+      "file_name": "20141104195854Bh.jpeg",
+      "raw_predictions": 44,
+      "accepted_predictions": 10
+    },
+    {
+      "file_name": "20141120195834Ch.jpeg",
+      "raw_predictions": 45,
+      "accepted_predictions": 11
+    },
+    {
+      "file_name": "20141220201934Ch.jpeg",
+      "raw_predictions": 80,
+      "accepted_predictions": 10
+    },
+    {
+      "file_name": "20141222201814Mh.jpeg",
+      "raw_predictions": 70,
+      "accepted_predictions": 5
+    },
+    {
+      "file_name": "20150105104334Ch.jpeg",
+      "raw_predictions": 64,
+      "accepted_predictions": 13
+    },
+    {
+      "file_name": "20150124081954Uh.jpeg",
+      "raw_predictions": 34,
+      "accepted_predictions": 5
+    },
+    {
+      "file_name": "20150430082014Th.jpeg",
+      "raw_predictions": 51,
+      "accepted_predictions": 9
+    },
+    {
+      "file_name": "20150601122834Ch.jpeg",
+      "raw_predictions": 40,
+      "accepted_predictions": 4
+    },
+    {
+      "file_name": "20150602122934Ch.jpeg",
+      "raw_predictions": 50,
+      "accepted_predictions": 5
+    },
+    {
+      "file_name": "20150619133554Bh.jpeg",
+      "raw_predictions": 57,
+      "accepted_predictions": 8
+    },
+    {
+      "file_name": "20150620161314Mh.jpeg",
+      "raw_predictions": 51,
+      "accepted_predictions": 8
+    },
+    {
+      "file_name": "20150623152934Ch.jpeg",
+      "raw_predictions": 43,
+      "accepted_predictions": 6
+    },
+    {
+      "file_name": "20150913082034Lh.jpeg",
+      "raw_predictions": 34,
+      "accepted_predictions": 2
+    },
+    {
+      "file_name": "20151003081954Uh.jpeg",
+      "raw_predictions": 35,
+      "accepted_predictions": 3
+    },
+    {
+      "file_name": "20151015170634Ch.jpeg",
+      "raw_predictions": 56,
+      "accepted_predictions": 7
+    },
+    {
+      "file_name": "20151026171014Mh.jpeg",
+      "raw_predictions": 29,
+      "accepted_predictions": 6
+    },
+    {
+      "file_name": "20151117212434Ch.jpeg",
+      "raw_predictions": 28,
+      "accepted_predictions": 6
+    },
+    {
+      "file_name": "20151204133714Th.jpeg",
+      "raw_predictions": 7,
+      "accepted_predictions": 0
+    },
+    {
+      "file_name": "20151207173614Mh.jpeg",
+      "raw_predictions": 24,
+      "accepted_predictions": 5
+    },
+    {
+      "file_name": "20151214171854Bh.jpeg",
+      "raw_predictions": 57,
+      "accepted_predictions": 9
+    },
+    {
+      "file_name": "20151227133734Ch.jpeg",
+      "raw_predictions": 48,
+      "accepted_predictions": 7
+    },
+    {
+      "file_name": "20160116133734Ch.jpeg",
+      "raw_predictions": 36,
+      "accepted_predictions": 7
+    },
+    {
+      "file_name": "20160226151654Bh.jpeg",
+      "raw_predictions": 30,
+      "accepted_predictions": 4
+    },
+    {
+      "file_name": "20160311020654Uh.jpeg",
+      "raw_predictions": 36,
+      "accepted_predictions": 6
+    },
+    {
+      "file_name": "20160312020554Uh.jpeg",
+      "raw_predictions": 24,
+      "accepted_predictions": 6
+    },
+    {
+      "file_name": "20160327133714Th.jpeg",
+      "raw_predictions": 29,
+      "accepted_predictions": 3
+    },
+    {
+      "file_name": "20160327133734Ch.jpeg",
+      "raw_predictions": 31,
+      "accepted_predictions": 3
+    },
+    {
+      "file_name": "20160405014154Uh.jpeg",
+      "raw_predictions": 27,
+      "accepted_predictions": 3
+    },
+    {
+      "file_name": "20160505025554Uh.jpeg",
+      "raw_predictions": 30,
+      "accepted_predictions": 4
+    },
+    {
+      "file_name": "20160513133714Th.jpeg",
+      "raw_predictions": 30,
+      "accepted_predictions": 4
+    },
+    {
+      "file_name": "20160602010754Uh.jpeg",
+      "raw_predictions": 24,
+      "accepted_predictions": 2
+    },
+    {
+      "file_name": "20160713133714Th.jpeg",
+      "raw_predictions": 33,
+      "accepted_predictions": 6
+    },
+    {
+      "file_name": "20160820233134Lh.jpeg",
+      "raw_predictions": 22,
+      "accepted_predictions": 4
+    },
+    {
+      "file_name": "20160828133734Ch.jpeg",
+      "raw_predictions": 29,
+      "accepted_predictions": 8
+    },
+    {
+      "file_name": "20160930165914Mh.jpeg",
+      "raw_predictions": 29,
+      "accepted_predictions": 4
+    },
+    {
+      "file_name": "20161015144954Bh.jpeg",
+      "raw_predictions": 19,
+      "accepted_predictions": 3
+    },
+    {
+      "file_name": "20161019133714Th.jpeg",
+      "raw_predictions": 14,
+      "accepted_predictions": 4
+    },
+    {
+      "file_name": "20161020145454Bh.jpeg",
+      "raw_predictions": 29,
+      "accepted_predictions": 2
+    },
+    {
+      "file_name": "20161104133714Th.jpeg",
+      "raw_predictions": 32,
+      "accepted_predictions": 6
+    },
+    {
+      "file_name": "20161111133734Ch.jpeg",
+      "raw_predictions": 17,
+      "accepted_predictions": 3
+    },
+    {
+      "file_name": "20161116222134Lh.jpeg",
+      "raw_predictions": 9,
+      "accepted_predictions": 2
+    },
+    {
+      "file_name": "20161219133734Ch.jpeg",
+      "raw_predictions": 13,
+      "accepted_predictions": 3
+    },
+    {
+      "file_name": "20161231223534Lh.jpeg",
+      "raw_predictions": 26,
+      "accepted_predictions": 3
+    },
+    {
+      "file_name": "20170129133714Th.jpeg",
+      "raw_predictions": 18,
+      "accepted_predictions": 1
+    },
+    {
+      "file_name": "20170313145450Bh.jpeg",
+      "raw_predictions": 25,
+      "accepted_predictions": 2
+    },
+    {
+      "file_name": "20170326133730Ch.jpeg",
+      "raw_predictions": 33,
+      "accepted_predictions": 4
+    },
+    {
+      "file_name": "20170328014950Uh.jpeg",
+      "raw_predictions": 9,
+      "accepted_predictions": 2
+    },
+    {
+      "file_name": "20170329014850Uh.jpeg",
+      "raw_predictions": 23,
+      "accepted_predictions": 3
+    },
+    {
+      "file_name": "20170330133710Th.jpeg",
+      "raw_predictions": 13,
+      "accepted_predictions": 1
+    },
+    {
+      "file_name": "20170414151450Bh.jpeg",
+      "raw_predictions": 7,
+      "accepted_predictions": 3
+    },
+    {
+      "file_name": "20170516134450Bh.jpeg",
+      "raw_predictions": 7,
+      "accepted_predictions": 2
+    },
+    {
+      "file_name": "20170626133730Ch.jpeg",
+      "raw_predictions": 4,
+      "accepted_predictions": 1
+    },
+    {
+      "file_name": "20170708164010Mh.jpeg",
+      "raw_predictions": 11,
+      "accepted_predictions": 0
+    },
+    {
+      "file_name": "20170902231930Lh.jpeg",
+      "raw_predictions": 29,
+      "accepted_predictions": 2
+    },
+    {
+      "file_name": "20170926225530Lh.jpeg",
+      "raw_predictions": 28,
+      "accepted_predictions": 2
+    },
+    {
+      "file_name": "20171018223630Lh.jpeg",
+      "raw_predictions": 12,
+      "accepted_predictions": 2
+    },
+    {
+      "file_name": "20171021223430Lh.jpeg",
+      "raw_predictions": 17,
+      "accepted_predictions": 4
+    },
+    {
+      "file_name": "20171027150050Bh.jpeg",
+      "raw_predictions": 32,
+      "accepted_predictions": 3
+    },
+    {
+      "file_name": "20171029171010Mh.jpeg",
+      "raw_predictions": 48,
+      "accepted_predictions": 5
+    },
+    {
+      "file_name": "20171107222630Lh.jpeg",
+      "raw_predictions": 15,
+      "accepted_predictions": 2
+    },
+    {
+      "file_name": "20171108222430Lh.jpeg",
+      "raw_predictions": 9,
+      "accepted_predictions": 2
+    },
+    {
+      "file_name": "20171122022450Uh.jpeg",
+      "raw_predictions": 18,
+      "accepted_predictions": 3
+    },
+    {
+      "file_name": "20180507140210Th.jpeg",
+      "raw_predictions": 3,
+      "accepted_predictions": 1
+    },
+    {
+      "file_name": "20180726232450Bh.jpeg",
+      "raw_predictions": 25,
+      "accepted_predictions": 2
+    },
+    {
+      "file_name": "20181012105930Ch.jpeg",
+      "raw_predictions": 12,
+      "accepted_predictions": 3
+    },
+    {
+      "file_name": "20181030230030Lh.jpeg",
+      "raw_predictions": 7,
+      "accepted_predictions": 1
+    },
+    {
+      "file_name": "20190605025430Lh.jpeg",
+      "raw_predictions": 22,
+      "accepted_predictions": 4
+    },
+    {
+      "file_name": "20190607032610Mh.jpeg",
+      "raw_predictions": 21,
+      "accepted_predictions": 2
+    },
+    {
+      "file_name": "20200310113230Ch.jpeg",
+      "raw_predictions": 1,
+      "accepted_predictions": 0
+    },
+    {
+      "file_name": "20200806072410Th.jpeg",
+      "raw_predictions": 16,
+      "accepted_predictions": 2
+    },
+    {
+      "file_name": "20201228202510Mh.jpeg",
+      "raw_predictions": 17,
+      "accepted_predictions": 2
+    },
+    {
+      "file_name": "20210101202450Bh.jpeg",
+      "raw_predictions": 18,
+      "accepted_predictions": 2
+    },
+    {
+      "file_name": "20210127110130Ch.jpeg",
+      "raw_predictions": 18,
+      "accepted_predictions": 2
+    },
+    {
+      "file_name": "20210219230330Lh.jpeg",
+      "raw_predictions": 15,
+      "accepted_predictions": 2
+    },
+    {
+      "file_name": "20210607142350Bh.jpeg",
+      "raw_predictions": 7,
+      "accepted_predictions": 1
+    },
+    {
+      "file_name": "20210627163630Mh.jpeg",
+      "raw_predictions": 33,
+      "accepted_predictions": 6
+    },
+    {
+      "file_name": "20210701163730Mh.jpeg",
+      "raw_predictions": 40,
+      "accepted_predictions": 5
+    },
+    {
+      "file_name": "20210708060030Lh.jpeg",
+      "raw_predictions": 23,
+      "accepted_predictions": 1
+    },
+    {
+      "file_name": "20210726041650Uh.jpeg",
+      "raw_predictions": 21,
+      "accepted_predictions": 2
+    },
+    {
+      "file_name": "20210730044930Lh.jpeg",
+      "raw_predictions": 36,
+      "accepted_predictions": 9
+    },
+    {
+      "file_name": "20210811072510Th.jpeg",
+      "raw_predictions": 12,
+      "accepted_predictions": 1
+    },
+    {
+      "file_name": "20211119005210Mh.jpeg",
+      "raw_predictions": 9,
+      "accepted_predictions": 1
+    },
+    {
+      "file_name": "20211214174010Mh.jpeg",
+      "raw_predictions": 5,
+      "accepted_predictions": 0
+    },
+    {
+      "file_name": "20211224120130Ch.jpeg",
+      "raw_predictions": 28,
+      "accepted_predictions": 5
+    },
+    {
+      "file_name": "20211231180850Bh.jpeg",
+      "raw_predictions": 6,
+      "accepted_predictions": 4
+    },
+    {
+      "file_name": "20220124155050Bh.jpeg",
+      "raw_predictions": 19,
+      "accepted_predictions": 3
+    },
+    {
+      "file_name": "20220328035030Lh.jpeg",
+      "raw_predictions": 25,
+      "accepted_predictions": 3
+    },
+    {
+      "file_name": "20220523234912Lh.jpeg",
+      "raw_predictions": 30,
+      "accepted_predictions": 3
+    },
+    {
+      "file_name": "20220621185332Bh.jpeg",
+      "raw_predictions": 47,
+      "accepted_predictions": 6
+    },
+    {
+      "file_name": "20220626185332Bh.jpeg",
+      "raw_predictions": 26,
+      "accepted_predictions": 7
+    },
+    {
+      "file_name": "20220714185352Th.jpeg",
+      "raw_predictions": 65,
+      "accepted_predictions": 11
+    },
+    {
+      "file_name": "20220728185352Th.jpeg",
+      "raw_predictions": 35,
+      "accepted_predictions": 3
+    }
+  ]
+}

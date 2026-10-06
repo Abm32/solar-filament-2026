@@ -1,0 +1,201 @@
+{
+  "status": "complete",
+  "population": {
+    "files": 707,
+    "records": 1154,
+    "annotations": 8199
+  },
+  "detector_sha256": "5cc803e4f3ca334c471fc1012ef1e27a142b59b085831fc09d5e35d621ca5629",
+  "base": {
+    "signature": {
+      "stage": "base",
+      "source_sha256": "imagenet-resnet18",
+      "epochs": 8,
+      "learning_rate": 0.0003,
+      "weight_decay": 0.0001,
+      "batch": 16,
+      "loss": "0.5 BCEWithLogits + 0.5 soft Dice",
+      "amp": true,
+      "crops": 8199,
+      "population": {
+        "files": 707,
+        "records": 1154,
+        "annotations": 8199
+      }
+    },
+    "elapsed_seconds": 462.5399118610003,
+    "epochs_completed": 8,
+    "checkpoint": "/mnt/solar-v21-full-refit/refiner/base/final.pt",
+    "checkpoint_sha256": "4ff39b2afd3cff9527870d675f683790c16333ab63082a720417767facf40194",
+    "history": [
+      {
+        "epoch": 1,
+        "samples": 8199,
+        "updates": 513,
+        "mean_loss": 0.33903342359116023,
+        "learning_rate": 0.0003
+      },
+      {
+        "epoch": 2,
+        "samples": 8199,
+        "updates": 513,
+        "mean_loss": 0.14425378192385635,
+        "learning_rate": 0.000288581929876693
+      },
+      {
+        "epoch": 3,
+        "samples": 8199,
+        "updates": 513,
+        "mean_loss": 0.13575785289866008,
+        "learning_rate": 0.0002560660171779821
+      },
+      {
+        "epoch": 4,
+        "samples": 8199,
+        "updates": 513,
+        "mean_loss": 0.13132023304820803,
+        "learning_rate": 0.00020740251485476348
+      },
+      {
+        "epoch": 5,
+        "samples": 8199,
+        "updates": 513,
+        "mean_loss": 0.128348863636274,
+        "learning_rate": 0.00015
+      },
+      {
+        "epoch": 6,
+        "samples": 8199,
+        "updates": 513,
+        "mean_loss": 0.12474133142800953,
+        "learning_rate": 9.259748514523653e-05
+      },
+      {
+        "epoch": 7,
+        "samples": 8199,
+        "updates": 513,
+        "mean_loss": 0.12256342291483023,
+        "learning_rate": 4.3933982822017876e-05
+      },
+      {
+        "epoch": 8,
+        "samples": 8199,
+        "updates": 513,
+        "mean_loss": 0.12110646731141922,
+        "learning_rate": 1.1418070123306989e-05
+      }
+    ],
+    "selection": "fixed duration; all approved labels used for fitting"
+  },
+  "canonical": {
+    "signature": {
+      "stage": "canonical",
+      "source_sha256": "4ff39b2afd3cff9527870d675f683790c16333ab63082a720417767facf40194",
+      "epochs": 3,
+      "learning_rate": 5e-05,
+      "weight_decay": 0.0001,
+      "batch": 16,
+      "loss": "0.5 BCEWithLogits + 0.5 soft Dice",
+      "amp": true,
+      "crops": 8199,
+      "population": {
+        "files": 707,
+        "records": 1154,
+        "annotations": 8199
+      }
+    },
+    "elapsed_seconds": 172.59481169700302,
+    "epochs_completed": 3,
+    "checkpoint": "/mnt/solar-v21-full-refit/refiner/canonical/final.pt",
+    "checkpoint_sha256": "ec5771a5bf270ee1f531fa1bd79d22d6bfd7bae5678dc185174462f33f7b27f8",
+    "history": [
+      {
+        "epoch": 1,
+        "samples": 8199,
+        "updates": 513,
+        "mean_loss": 0.12035566051313973,
+        "learning_rate": 5e-05
+      },
+      {
+        "epoch": 2,
+        "samples": 8199,
+        "updates": 513,
+        "mean_loss": 0.11884920371387162,
+        "learning_rate": 3.7500000000000003e-05
+      },
+      {
+        "epoch": 3,
+        "samples": 8199,
+        "updates": 513,
+        "mean_loss": 0.11709505716341707,
+        "learning_rate": 1.2500000000000007e-05
+      }
+    ],
+    "selection": "fixed duration; all approved labels used for fitting"
+  },
+  "proposal_cohort": {
+    "matched_samples": 7709,
+    "all_training_annotations": 8199,
+    "cohort_sha256": "0c041262ade5376a92015d0085f2125ddd15936d46e0905ed26c228339ae3e52"
+  },
+  "proposal_centered": {
+    "signature": {
+      "stage": "proposal_centered",
+      "source_sha256": "ec5771a5bf270ee1f531fa1bd79d22d6bfd7bae5678dc185174462f33f7b27f8",
+      "epochs": 4,
+      "learning_rate": 5e-05,
+      "weight_decay": 0.0001,
+      "batch": 16,
+      "precision": "float32",
+      "cohort_sha256": "0c041262ade5376a92015d0085f2125ddd15936d46e0905ed26c228339ae3e52",
+      "samples": 7709,
+      "population": {
+        "files": 707,
+        "records": 1154,
+        "annotations": 8199
+      }
+    },
+    "elapsed_seconds": 450.4630540479993,
+    "epochs_completed": 4,
+    "checkpoint": "/mnt/solar-v21-full-refit/refiner/proposal_centered/final.pt",
+    "checkpoint_sha256": "26013cec76b7c329f9891fdbf90def19abc60a696d134273837cf5dc3f5f0792",
+    "history": [
+      {
+        "epoch": 1,
+        "samples": 7709,
+        "updates": 482,
+        "mean_loss": 0.15651746836675406,
+        "learning_rate": 5e-05,
+        "sample_order_sha256": "ad782d4c9a35935776198122e6a2d8639772ae9cd2411197101cd5bed66b4f53"
+      },
+      {
+        "epoch": 2,
+        "samples": 7709,
+        "updates": 482,
+        "mean_loss": 0.150633708141258,
+        "learning_rate": 4.267766952966369e-05,
+        "sample_order_sha256": "9d3340a54128bf0392016f43c125000a4793bd12e66f431a9a1ec105a9e8f490"
+      },
+      {
+        "epoch": 3,
+        "samples": 7709,
+        "updates": 482,
+        "mean_loss": 0.1489963005768648,
+        "learning_rate": 2.5e-05,
+        "sample_order_sha256": "a4e0a0856860359da0e80f18de828d3539823dc0acc2ecc8472d54be8443e866"
+      },
+      {
+        "epoch": 4,
+        "samples": 7709,
+        "updates": 482,
+        "mean_loss": 0.14739320470767503,
+        "learning_rate": 7.3223304703363135e-06,
+        "sample_order_sha256": "a396926dfe24a6c69ca6087e30ac08d974a133ee36c0db75808cfbc4b3d7ceeb"
+      }
+    ],
+    "selection": "fixed duration; all approved labels used for fitting"
+  },
+  "selected_checkpoint": "/mnt/solar-v21-full-refit/refiner/proposal_centered/final.pt",
+  "selected_checkpoint_sha256": "26013cec76b7c329f9891fdbf90def19abc60a696d134273837cf5dc3f5f0792",
+  "validation": "none: all approved labels used for fitting"
+}

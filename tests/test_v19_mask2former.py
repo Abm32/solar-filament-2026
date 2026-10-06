@@ -51,6 +51,7 @@ class _StubModel:
 
 def test_protocol_constants_match_v19_design_doc():
     assert v19.SUBMIT_BAR_TUNE == 0.448703  # V17's accepted tune PQ
+    assert v19.SUBMIT_BAR_AUDIT == 0.470763  # V17's corresponding audit PQ
     assert v19.PROMOTION_GATE_TUNE == 0.55
     assert v19.IMG_SIZE_TRAIN == 1024
     assert v19.IMG_SIZE_INFER == 2048
@@ -133,20 +134,20 @@ def test_split_reproduces_the_known_707_566_94_47_shape_on_real_data():
 
 
 @requires_dataset
-def test_build_hf_dataset_carries_real_annotation_counts():
+def test_build_hf_dataset_carries_all_annotator_records_and_counts():
     image_dir = DATA_ROOT / "train" / "train_images"
     split = v19.load_split(ANNOTATIONS)
     dataset = v19.build_hf_dataset(ANNOTATIONS, image_dir, split)
-    assert len(dataset["train"]) == len(split.train_files)
-    assert len(dataset["tune"]) == len(split.tune_files)
-    assert len(dataset["audit"]) == len(split.audit_files)
-    total_annotations = sum(len(r["annotations"]) for part in dataset.values() for r in part)
-    assert total_annotations > 0
-    # No record should carry another record's annotations (a stale file_to_id
-    # bug would silently duplicate counts across splits).
-    densest = max(dataset["train"], key=lambda r: len(r["annotations"]))
-    assert densest["file_name"] in split.train_files
-    assert len(densest["annotations"]) > 0
+    assert len(dataset["train"]) == 937
+    assert len(dataset["tune"]) == 150
+    assert len(dataset["audit"]) == 67
+    assert sum(len(r["annotations"]) for r in dataset["tune"]) == 1134
+    assert sum(len(r["annotations"]) for r in dataset["audit"]) == 459
+    assert all("image_id" in record for part in dataset.values() for record in part)
+    # Duplicate annotators share a file-level prediction but remain distinct
+    # target records, matching canonical V9-V18 PQ accounting.
+    assert len({r["file_name"] for r in dataset["tune"]}) == 94
+    assert len({r["file_name"] for r in dataset["audit"]}) == 47
 
 
 # --- run_smoke_test / main() refuse to proceed without required inputs ---

@@ -1,0 +1,77 @@
+shard=1/4 images=10/45 rows=75 elapsed=19.4s
+shard=1/4 images=20/45 rows=167 elapsed=42.5s
+shard=1/4 images=30/45 rows=219 elapsed=57.9s
+shard=1/4 images=40/45 rows=250 elapsed=67.7s
+shard=1/4 images=45/45 rows=262 elapsed=71.7s
+{
+  "status": "complete",
+  "shard_index": 1,
+  "num_shards": 4,
+  "files": [
+    "20110130110334Ch.jpeg",
+    "20110424064534Lh.jpeg",
+    "20110603123034Ch.jpeg",
+    "20110827141254Bh.jpeg",
+    "20111114063134Lh.jpeg",
+    "20111208173814Mh.jpeg",
+    "20120111191454Bh.jpeg",
+    "20120402164214Mh.jpeg",
+    "20120606063154Uh.jpeg",
+    "20120730072014Th.jpeg",
+    "20121125063154Uh.jpeg",
+    "20121220110614Th.jpeg",
+    "20130206063154Uh.jpeg",
+    "20130315063154Uh.jpeg",
+    "20130530133654Bh.jpeg",
+    "20130627063134Lh.jpeg",
+    "20131027185354Bh.jpeg",
+    "20131230192154Bh.jpeg",
+    "20140403081714Th.jpeg",
+    "20140516234034Lh.jpeg",
+    "20140629195814Mh.jpeg",
+    "20140907195814Mh.jpeg",
+    "20141120195834Ch.jpeg",
+    "20150124081954Uh.jpeg",
+    "20150619133554Bh.jpeg",
+    "20151003081954Uh.jpeg",
+    "20151204133714Th.jpeg",
+    "20160116133734Ch.jpeg",
+    "20160327133714Th.jpeg",
+    "20160513133714Th.jpeg",
+    "20160828133734Ch.jpeg",
+    "20161020145454Bh.jpeg",
+    "20161219133734Ch.jpeg",
+    "20170326133730Ch.jpeg",
+    "20170414151450Bh.jpeg",
+    "20170902231930Lh.jpeg",
+    "20171027150050Bh.jpeg",
+    "20171122022450Uh.jpeg",
+    "20181030230030Lh.jpeg",
+    "20200806072410Th.jpeg",
+    "20210219230330Lh.jpeg",
+    "20210708060030Lh.jpeg",
+    "20211119005210Mh.jpeg",
+    "20220124155050Bh.jpeg",
+    "20220626185332Bh.jpeg"
+  ],
+  "evaluated_images": 45,
+  "rows": 262,
+  "empty_images": [
+    "20200806072410Th.jpeg"
+  ],
+  "detector_sha256": "5cc803e4f3ca334c471fc1012ef1e27a142b59b085831fc09d5e35d621ca5629",
+  "refiner_sha256": "26013cec76b7c329f9891fdbf90def19abc60a696d134273837cf5dc3f5f0792",
+  "recipe": {
+    "box_iou": 0.3,
+    "detector_floor": 0.1,
+    "detector_views": 4,
+    "policy": "flip_consensus",
+    "mask_threshold": 0.45,
+    "confidence": 0.3,
+    "mode": "refined_constrained",
+    "crop_tta_views": 4,
+    "min_area": 20
+  },
+  "csv_sha256": "c0353ce7dd2b0bfa3d305a5a39232fba808eec8d4040fa483224c53c94dbade8",
+  "seconds": 71.66217080999922
+}

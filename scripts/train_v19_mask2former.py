@@ -40,6 +40,7 @@ sys.path.insert(0, str(REPO_ROOT))
 # Predeclared protocol constants (docs/v19_design_2026-09-09.md)
 # ---------------------------------------------------------------------------
 SUBMIT_BAR_TUNE = 0.448703          # V17's accepted tune PQ
+SUBMIT_BAR_AUDIT = 0.470763         # V17's corresponding audit PQ
 PROMOTION_GATE_TUNE = 0.55          # large, unambiguous local jump
 IMG_SIZE_TRAIN = 1024
 IMG_SIZE_INFER = 2048
@@ -151,25 +152,32 @@ def load_split(coco_path: Path) -> Split:
 
 
 def build_hf_dataset(coco_path: Path, image_dir: Path, split: Split):
-    """Convert COCO annotations into the transformers Mask2Former input format."""
+    """Convert COCO annotations into Mask2Former records.
+
+    Retain every annotator image_id for each file. V6 and all canonical V9-V18
+    PQ evaluations score one file-level prediction against every supplied
+    annotator record; collapsing file_name to one image_id silently changed the
+    target population (728 vs 1,134 tune GT instances) and made V19's metric
+    incomparable to its V17 submission bar.
+    """
     from src.coco import index_coco, load_coco  # project's own loader
 
     coco = load_coco(coco_path)
     images, annotations = index_coco(coco)
-    file_to_id = {info["file_name"]: image_id for image_id, info in images.items()}
+    file_to_ids: dict[str, list[int]] = {}
+    for image_id, info in images.items():
+        file_to_ids.setdefault(info["file_name"], []).append(image_id)
 
     def subset(file_names: list[str]) -> list[dict]:
         records = []
         for file_name in file_names:
-            image_id = file_to_id.get(file_name)
-            if image_id is None:
-                continue
-            anns = annotations.get(image_id, [])
-            records.append({
-                "file_name": file_name,
-                "image_path": str(image_dir / file_name),
-                "annotations": anns,
-            })
+            for image_id in sorted(file_to_ids.get(file_name, [])):
+                records.append({
+                    "file_name": file_name,
+                    "image_id": image_id,
+                    "image_path": str(image_dir / file_name),
+                    "annotations": annotations.get(image_id, []),
+                })
         return records
 
     return {
@@ -548,8 +556,10 @@ def run_full_training(dataset: dict, out_dir: Path) -> dict:
     result = dict(
         best_tune_pq=best_tune_pq, audit_pq=audit_result["pq"],
         audit_tp=audit_result["tp"], audit_fp=audit_result["fp"], audit_fn=audit_result["fn"],
-        submit_bar_tune=SUBMIT_BAR_TUNE, promotion_gate_tune=PROMOTION_GATE_TUNE,
-        cleared_submit_bar=best_tune_pq >= SUBMIT_BAR_TUNE,
+        submit_bar_tune=SUBMIT_BAR_TUNE, submit_bar_audit=SUBMIT_BAR_AUDIT,
+        promotion_gate_tune=PROMOTION_GATE_TUNE,
+        cleared_submit_bar=(best_tune_pq >= SUBMIT_BAR_TUNE
+                            and audit_result["pq"] >= SUBMIT_BAR_AUDIT),
         cleared_promotion_gate=best_tune_pq >= PROMOTION_GATE_TUNE,
         eval_resolution=IMG_SIZE_TRAIN,
         history=history,

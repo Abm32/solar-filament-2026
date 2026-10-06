@@ -1,0 +1,53 @@
+{
+  "competition": "filament-segmentation-2026",
+  "submission_ref": 56170647,
+  "file_name": "submission_v21.csv",
+  "local_file": "submission_v21.csv",
+  "sha256": "98f58d2e115ebb6ae9c4f270aa4f03e46d75c279ad6a5c5c09afefb9121e9016",
+  "description": "V21 full-data refit - V17 recipe, all 707 files, mr1 iou0.3 t0.45 c0.30",
+  "submitted_utc": "2026-09-11T18:06:29+00:00",
+  "submitted_ist": "2026-09-11T23:36:29+05:30",
+  "status": "complete",
+  "public_score": 0.38,
+  "private_score": null,
+  "confirmed_utc": "2026-09-11T18:10:14+00:00",
+  "confirmed_ist": "2026-09-11T23:40:14+05:30",
+  "candidate": "V21 full-data refit of V17 recipe",
+  "training_population": {
+    "physical_files": 707,
+    "annotator_records": 1154,
+    "annotations": 8199
+  },
+  "detector_sha256": "5cc803e4f3ca334c471fc1012ef1e27a142b59b085831fc09d5e35d621ca5629",
+  "refiner_sha256": "26013cec76b7c329f9891fdbf90def19abc60a696d134273837cf5dc3f5f0792",
+  "recipe": {
+    "mask_ratio": 1,
+    "box_iou": 0.3,
+    "detector_confidence_floor": 0.1,
+    "detector_views": 4,
+    "proposal_policy": "flip_consensus",
+    "mask_threshold": 0.45,
+    "confidence": 0.30,
+    "refinement_mode": "refined_constrained",
+    "crop_tta_views": 4,
+    "minimum_area": 20
+  },
+  "submission": {
+    "rows": 1091,
+    "populated_images": 174,
+    "test_images_processed": 180,
+    "empty_images": [
+      "20110120105534Ch",
+      "20170708164010Mh",
+      "20200310113230Ch",
+      "20200806072410Th",
+      "20210607142350Bh",
+      "20211214174010Mh"
+    ],
+    "validation": "PASSED: all RLEs decode, IDs known/sequential, area >= 20, per-image masks disjoint"
+  },
+  "outcome": "regression",
+  "outcome_detail": "V21 scored 0.38, below V17 submission 56103401 at 0.39. V17 remains the established public best.",
+  "local_validation_caveat": "V21 has no held-out local PQ because all 707 labeled physical files were used for fitting.",
+  "duplicate_upload": false
+}

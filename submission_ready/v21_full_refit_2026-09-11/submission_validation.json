@@ -1,0 +1,23 @@
+{
+  "rows": 1091,
+  "test_images": 180,
+  "populated_images": 174,
+  "empty_images": [
+    "20110120105534Ch",
+    "20170708164010Mh",
+    "20200310113230Ch",
+    "20200806072410Th",
+    "20210607142350Bh",
+    "20211214174010Mh"
+  ],
+  "area_min": 20,
+  "area_median": 1344.0,
+  "area_max": 22876,
+  "csv_sha256": "98f58d2e115ebb6ae9c4f270aa4f03e46d75c279ad6a5c5c09afefb9121e9016",
+  "manifest_sha256": "6b2f72852ea2fadc85e7a0d95eb48e479d621f7f78fc3b413fdd02a4b223744f",
+  "all_rles_decode": true,
+  "ids_unique_and_sequential": true,
+  "nonoverlap_per_image": true,
+  "manifest_matches": true,
+  "checkpoint_hashes_match": true
+}

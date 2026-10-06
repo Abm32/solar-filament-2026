@@ -1,0 +1,21 @@
+{
+  "rows": 981,
+  "test_images_known": 180,
+  "populated_images": 176,
+  "empty_images": [
+    "20151204133714Th",
+    "20170708164010Mh",
+    "20200310113230Ch",
+    "20211214174010Mh"
+  ],
+  "area_min": 30,
+  "area_median": 1764.0,
+  "area_max": 28850,
+  "csv_sha256": "247e1d0a7cfc0ca6ded5843e6549db8478ab71fce170d1ac210ccd55e6f2814e",
+  "manifest_sha256": "216d5ec39367a0a7e9328ea0c8719c9a7eb4f081e2441cef0cfff527fd342ea7",
+  "all_rles_decode": true,
+  "ids_unique_and_sequential": true,
+  "nonoverlap_per_image": true,
+  "manifest_matches": true,
+  "measurement_override": true
+}

@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/mnt/solar-v20-condinst/export_v20_submission.py", line 159, in <module>
+    main()
+  File "/mnt/solar-v20-condinst/export_v20_submission.py", line 152, in main
+    export(
+  File "/mnt/solar-v20-condinst/export_v20_submission.py", line 72, in export
+    confidence, checkpoint_sha = check_override(report, checkpoint, override)
+  File "/mnt/solar-v20-condinst/export_v20_submission.py", line 60, in check_override
+    raise RuntimeError(
+RuntimeError: V20 failed local export gates. Pass --measurement-override only after explicit user authorization for one public leaderboard measurement.

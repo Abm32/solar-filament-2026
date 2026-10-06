@@ -113,7 +113,7 @@ never selects, seed2 never selects).
 | File | Purpose |
 | --- | --- |
 | `submission_v17.csv` | the upload, sha256 `87b22b056ca830527664a92db8daa76e2c93660cd232ae45346b28d4c1cb922b` |
-| `SHA256SUMS` | checksum to re-verify before upload |
+| `SHA256SUMS` | checksum to re-verify from the repository root with `sha256sum -c submission_ready/v17_2026-09-08/SHA256SUMS` |
 | `v17_report.json` | both bar decisions and signed deltas vs all five parents |
 | `v17_manifest.json` | runtime manifest, checkpoint/cache pins, versions |
 | `v17_submission_validation.json` | independent structural validation |

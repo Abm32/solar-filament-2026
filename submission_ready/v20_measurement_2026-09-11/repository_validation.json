@@ -1,0 +1,17 @@
+{
+  "file": "submission_ready/v20_measurement_2026-09-11/submission_v20.csv",
+  "sha256": "247e1d0a7cfc0ca6ded5843e6549db8478ab71fce170d1ac210ccd55e6f2814e",
+  "rows": 981,
+  "populated_images": 176,
+  "missing_images": [
+    "20151204133714Th",
+    "20170708164010Mh",
+    "20200310113230Ch",
+    "20211214174010Mh"
+  ],
+  "median_instances_populated": 5.0,
+  "min_mask_area": 30,
+  "median_mask_area": 1764.0,
+  "non_overlap": true,
+  "full_rle_decode": true
+}

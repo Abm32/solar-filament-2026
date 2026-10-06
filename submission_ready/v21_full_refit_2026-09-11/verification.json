@@ -1,0 +1,14 @@
+{
+  "checks": {
+    "detector_complete": true,
+    "refiner_complete": true,
+    "population": true,
+    "detector_hash": true,
+    "refiner_hash": true,
+    "persistent_detector_hash": true,
+    "persistent_refiner_hash": true
+  },
+  "detector_sha256": "5cc803e4f3ca334c471fc1012ef1e27a142b59b085831fc09d5e35d621ca5629",
+  "refiner_sha256": "26013cec76b7c329f9891fdbf90def19abc60a696d134273837cf5dc3f5f0792",
+  "proposal_samples": 7709
+}

@@ -1,0 +1,26 @@
+{
+  "V17": {
+    "rows": 1215,
+    "populated": 177,
+    "median_instances": 7.0,
+    "area_min": 20,
+    "area_median": 1319.0,
+    "area_max": 20889
+  },
+  "V20": {
+    "rows": 981,
+    "populated": 176,
+    "median_instances": 5.0,
+    "area_min": 30,
+    "area_median": 1764.0,
+    "area_max": 28850
+  },
+  "V21": {
+    "rows": 1091,
+    "populated": 174,
+    "median_instances": 6.0,
+    "area_min": 20,
+    "area_median": 1344.0,
+    "area_max": 22876
+  }
+}

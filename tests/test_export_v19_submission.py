@@ -1,9 +1,4 @@
-"""Guard the SUBMIT_BAR gate in scripts/export_v19_submission.py.
-
-Only the gate-check logic (load_and_check_result) is testable without a GPU
-and a real checkpoint; export_submission itself needs CUDA + transformers and
-is exercised on the Azure VM / Kaggle, not here.
-"""
+"""Guard candidate identity and both canonical V19 export bars."""
 import importlib.util
 import json
 import sys
@@ -26,43 +21,90 @@ def load(name, path):
 export = load("export_v19_under_test", ROOT / "scripts/export_v19_submission.py")
 
 
-def _write_result(tmp_path, **overrides):
+def _authorized_result(**overrides):
     result = {
-        "best_tune_pq": 0.153578,
-        "audit_pq": 0.150346,
+        "checkpoint_sha256": "a" * 64,
+        "eval_resolution": 1024,
+        "selected_threshold": 0.75,
+        "best_tune_pq": 0.46,
+        "audit_pq": 0.48,
         "submit_bar_tune": 0.448703,
-        "promotion_gate_tune": 0.55,
-        "cleared_submit_bar": False,
+        "submit_bar_audit": 0.470763,
+        "cleared_submit_bar": True,
         "cleared_promotion_gate": False,
+        "export_authorized": True,
+        "populations": export.EXPECTED_POPULATIONS,
     }
     result.update(overrides)
-    path = tmp_path / "v19_full_result.json"
-    path.write_text(json.dumps(result))
+    return result
+
+
+def _write_result(tmp_path, **overrides):
+    path = tmp_path / "v19_threshold_calibration.json"
+    path.write_text(json.dumps(_authorized_result(**overrides)))
     return path
 
 
 def test_refuses_export_when_submit_bar_not_cleared(tmp_path):
-    path = _write_result(tmp_path)  # E029's actual failing result shape
-    with pytest.raises(RuntimeError, match="SUBMIT_BAR gates export"):
+    path = _write_result(
+        tmp_path, best_tune_pq=0.30, audit_pq=0.31,
+        cleared_submit_bar=False, export_authorized=False,
+    )
+    with pytest.raises(RuntimeError, match="candidate-identity checks gate export"):
         export.load_and_check_result(path)
 
 
-def test_allows_export_when_submit_bar_cleared(tmp_path):
-    path = _write_result(tmp_path, best_tune_pq=0.46, cleared_submit_bar=True)
-    result = export.load_and_check_result(path)
-    assert result["best_tune_pq"] == 0.46
+def test_allows_export_when_canonical_artifact_clears_both_bars(tmp_path):
+    result = export.load_and_check_result(_write_result(tmp_path))
+    assert result["selected_threshold"] == 0.75
+    assert result["eval_resolution"] == 1024
 
 
-def test_boundary_case_exact_bar_value_clears():
-    """If a run lands exactly on the bar, the training script's own
-    `best_tune_pq >= SUBMIT_BAR_TUNE` decides -- this test just pins that the
-    export gate trusts that field rather than re-deriving its own comparison
-    (avoiding a second place where a >= vs > mismatch could creep in)."""
+def test_rejects_stale_true_flag_when_audit_bar_fails(tmp_path):
+    path = _write_result(tmp_path, audit_pq=0.45)
+    with pytest.raises(RuntimeError, match="audit=0.45"):
+        export.load_and_check_result(path)
+
+
+@pytest.mark.parametrize("overrides", [
+    {"export_authorized": False},
+    {"selected_threshold": None},
+    {"eval_resolution": 0},
+    {"populations": {"tune": {}, "audit": {}}},
+])
+def test_rejects_incomplete_or_noncanonical_calibration(tmp_path, overrides):
+    path = _write_result(tmp_path, **overrides)
+    with pytest.raises((RuntimeError, TypeError)):
+        export.load_and_check_result(path)
+
+
+def test_checkpoint_hash_must_match_calibrated_candidate(tmp_path):
+    checkpoint = tmp_path / "best_model"
+    checkpoint.mkdir()
+    (checkpoint / "model.safetensors").write_bytes(b"actual checkpoint")
+    path = _write_result(tmp_path)
+    with pytest.raises(RuntimeError, match="Checkpoint hash mismatch"):
+        export.load_and_check_result(path, checkpoint)
+
+
+def test_matching_checkpoint_hash_is_accepted(tmp_path):
+    checkpoint = tmp_path / "best_model"
+    checkpoint.mkdir()
+    (checkpoint / "model.safetensors").write_bytes(b"actual checkpoint")
+    actual_sha = export.checkpoint_sha256(checkpoint)
+    path = _write_result(tmp_path, checkpoint_sha256=actual_sha)
+    result = export.load_and_check_result(path, checkpoint)
+    assert result["checkpoint_sha256"] == actual_sha
+
+
+def test_boundary_constants_and_min_area_match_protocol():
     assert export.SUBMIT_BAR_TUNE == 0.448703
-
-
-def test_min_mask_area_and_threshold_match_project_convention():
-    # scripts/validate_submission.py's default min_area is 20; must match so
-    # exported masks are never silently smaller than what validation accepts.
+    assert export.SUBMIT_BAR_AUDIT == 0.470763
     assert export.MIN_MASK_AREA == 20
-    assert export.MASK_THRESHOLD == 0.5
+
+
+def test_export_has_no_force_bypass_and_uses_calibrated_candidate():
+    source = (ROOT / "scripts/export_v19_submission.py").read_text()
+    assert '"--force"' not in source
+    assert 'result["selected_threshold"]' in source
+    assert 'result["eval_resolution"]' in source

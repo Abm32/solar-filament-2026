@@ -1,0 +1,19 @@
+{
+  "file": "submission_ready/v21_full_refit_2026-09-11/submission_v21.csv",
+  "sha256": "98f58d2e115ebb6ae9c4f270aa4f03e46d75c279ad6a5c5c09afefb9121e9016",
+  "rows": 1091,
+  "populated_images": 174,
+  "missing_images": [
+    "20110120105534Ch",
+    "20170708164010Mh",
+    "20200310113230Ch",
+    "20200806072410Th",
+    "20210607142350Bh",
+    "20211214174010Mh"
+  ],
+  "median_instances_populated": 6.0,
+  "min_mask_area": 20,
+  "median_mask_area": 1344.0,
+  "non_overlap": true,
+  "full_rle_decode": true
+}
