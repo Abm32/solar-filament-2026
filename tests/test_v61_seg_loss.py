@@ -165,3 +165,42 @@ def test_install_default_is_chunked():
         assert info["chunk"] == S.DEFAULT_CHUNK and S.DEFAULT_CHUNK >= 1
     finally:
         U.v8SegmentationLoss.single_mask_loss = staticmethod(UPSTREAM)
+
+
+def _chunked_upstream(chunk):
+    return S.make_chunked_upstream(torch, functional, crop_mask, chunk=chunk)
+
+
+def test_chunked_upstream_equals_upstream_value_and_gradient():
+    for seed in range(4):
+        gt, pred, proto, xyxy, area = _batch(seed=seed)
+        for chunk in (1, 2, 3, 16, 64):
+            p1 = pred.clone().requires_grad_(True)
+            p2 = pred.clone().requires_grad_(True)
+            a = UPSTREAM(gt.clone(), p1, proto, xyxy.clone(), area)
+            b = _chunked_upstream(chunk)(gt.clone(), p2, proto, xyxy.clone(), area)
+            a.backward()
+            b.backward()
+            assert torch.allclose(a, b, rtol=1e-5, atol=1e-6), (seed, chunk)
+            assert torch.allclose(p1.grad, p2.grad, rtol=1e-4, atol=1e-6), (seed, chunk)
+
+
+def test_chunked_upstream_handles_empty_and_single_instance():
+    gt, pred, proto, xyxy, area = _batch()
+    one = _chunked_upstream(16)(gt[:1].clone(), pred[:1], proto, xyxy[:1].clone(), area[:1])
+    ref = UPSTREAM(gt[:1].clone(), pred[:1], proto, xyxy[:1].clone(), area[:1])
+    assert torch.allclose(one, ref, rtol=1e-5)
+    empty = _chunked_upstream(16)(gt[:0], pred[:0], proto, xyxy[:0], area[:0])
+    assert float(empty) == 0.0
+
+
+def test_install_chunked_upstream_patches_and_restores():
+    gt, pred, proto, xyxy, area = _batch()
+    ref = UPSTREAM(gt.clone(), pred, proto, xyxy.clone(), area)
+    try:
+        info = S.install_chunked_upstream(4)
+        assert info["loss"] == "upstream_bce_chunked" and info["chunk"] == 4
+        got = U.v8SegmentationLoss.single_mask_loss(gt.clone(), pred, proto, xyxy.clone(), area)
+        assert torch.allclose(ref, got, rtol=1e-5, atol=1e-6)
+    finally:
+        U.v8SegmentationLoss.single_mask_loss = staticmethod(UPSTREAM)

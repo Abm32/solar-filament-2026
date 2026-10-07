@@ -99,8 +99,9 @@ def prepare_fold_dataset(fold: int, train_files, work: Path) -> dict:
 
 
 RECIPES = ("baseline", "focal_dice", "baseline_seed2", "p2last", "p2first",
-           "p2last_seed2", "p2first_seed2")
+           "p2last_seed2", "p2first_seed2", "p2first_cp")
 SEED2 = 20261005          # noise-control seed; never equals SEED
+COPY_PASTE = 0.3          # V64 copy-paste probability, fixed before any V64 run
 ALL_DATA_FOLD = 99        # label for the final all-707-file model (no held-out set)
 
 
@@ -115,6 +116,8 @@ def stage_args(recipe: str, stage: str, smoke: bool) -> dict:
     args = v21.base_args(smoke) if stage == "base" else v21.continuation_args(smoke)
     if recipe.endswith("_seed2"):
         args = dict(args, seed=SEED2)
+    if recipe.endswith("_cp"):  # V64: Ultralytics copy-paste (default flip mode), both stages
+        args = dict(args, copy_paste=COPY_PASTE)
     return args
 
 
@@ -171,7 +174,7 @@ def main():
         train_files, held = load_fold(args.folds, args.fold)
     loss_info = None
     init_source = INIT_WEIGHTS
-    arch = args.recipe.removesuffix("_seed2")
+    arch = args.recipe.removesuffix("_seed2").removesuffix("_cp")
     if arch in ("p2last", "p2first"):
         if len([d for d in args.device.split(",") if d]) != 1:
             raise RuntimeError("V62 patches the validator in-process: use exactly one GPU")
@@ -181,6 +184,11 @@ def main():
         if not init_source.exists():
             v62_init.build(arch, init_source)
         v62_patch.install(2 if arch == "p2first" else 4)
+    if args.recipe.endswith("_cp"):
+        # V65 resume: copy-paste raises instances/image; stage-2 (1024x1024 masks) OOMed on a
+        # 16 GB T4. Chunked+checkpointed UPSTREAM BCE = identical value/gradient, less memory.
+        import v61_seg_loss
+        loss_info = v61_seg_loss.install_chunked_upstream()
     if args.recipe == "focal_dice":
         import v61_seg_loss
         loss_info = v61_seg_loss.install(v61_seg_loss.W_FOCAL_DEFAULT,

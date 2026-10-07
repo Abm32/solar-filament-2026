@@ -87,6 +87,47 @@ def make_single_mask_loss(torch, functional, crop_mask, original, w_focal, w_dic
     return single_mask_loss
 
 
+def make_chunked_upstream(torch, functional, crop_mask, chunk=DEFAULT_CHUNK):
+    """Memory-only replacement for the UPSTREAM BCE mask loss (no Focal/Dice).
+
+    Upstream computes BCE for all instances at once; at mask_ratio=1 (1024x1024 masks) an image
+    with many instances (e.g. with copy-paste) exceeds a 16 GB T4. This computes the identical
+    per-instance sum `crop(BCE_i).mean(hw) / area_i` in `chunk`-instance checkpointed blocks.
+    Value and gradient equal upstream (tested); only peak memory changes. Not a hyperparameter.
+    """
+    from torch.utils.checkpoint import checkpoint
+
+    def block(pred, gt_mask, proto, xyxy, area):
+        pred_mask = torch.einsum("in,nhw->ihw", pred, proto)
+        bce = functional.binary_cross_entropy_with_logits(pred_mask, gt_mask, reduction="none")
+        return (crop_mask(bce, xyxy).mean(dim=(1, 2)) / area).sum()
+
+    def single_mask_loss(gt_mask, pred, proto, xyxy, area):
+        total = pred.new_zeros(())
+        for s in range(0, pred.shape[0], chunk):
+            sl = slice(s, s + chunk)
+            total = total + checkpoint(block, pred[sl], gt_mask[sl], proto, xyxy[sl], area[sl],
+                                       use_reentrant=False)
+        return total
+
+    return single_mask_loss
+
+
+def install_chunked_upstream(chunk=DEFAULT_CHUNK):
+    """Patch v8SegmentationLoss.single_mask_loss with the chunked upstream BCE. Returns info."""
+    global _ORIGINAL
+    import torch
+    import torch.nn.functional as functional
+    from ultralytics.utils import loss as L
+    from ultralytics.utils.ops import crop_mask
+
+    if _ORIGINAL is None:
+        _ORIGINAL = L.v8SegmentationLoss.__dict__["single_mask_loss"].__func__
+    fn = make_chunked_upstream(torch, functional, crop_mask, chunk)
+    L.v8SegmentationLoss.single_mask_loss = staticmethod(fn)
+    return {"loss": "upstream_bce_chunked", "chunk": chunk}
+
+
 def install(w_focal=W_FOCAL_DEFAULT, w_dice=W_DICE_DEFAULT, chunk=DEFAULT_CHUNK):
     """Patch v8SegmentationLoss.single_mask_loss in this process. Returns the weights used."""
     global _ORIGINAL
