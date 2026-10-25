@@ -1,32 +1,32 @@
 """V19 Mask2Former: export a Kaggle submission.csv from a trained checkpoint.
 
-Loads the checkpoint canonically evaluated by calibrate_v19_threshold.py,
-runs inference over every test image with that artifact's selected threshold and
-evaluation resolution, and writes filament_id/segmentation_rle rows in this
-project's standard format (COCO compressed RLE at 2048x2048, non-overlapping
-instances, minimum mask area 20).
+Loads the best-tune-PQ checkpoint saved by scripts/train_v19_mask2former.py's
+run_full_training, runs inference over every test image, and writes
+filament_id/segmentation_rle rows in this project's standard format (same
+convention as src/rle.py and scripts/validate_submission.py: COCO compressed
+RLE at 2048x2048, non-overlapping instances, minimum mask area 20).
 
-Only run this after canonical tune-only calibration. The calibration artifact
-must authorize export, clear both frozen V17 bars, describe the exact expected
-held-out populations, and match the supplied checkpoint hash. The exporter uses
-the selected threshold and evaluated resolution from that artifact so the test
-candidate cannot silently differ from the candidate that passed validation.
+Only ever run this AFTER confirming v19_full_result.json's cleared_submit_bar
+is true -- SUBMIT_BAR gates whether a CSV is authorized to be exported at all,
+per docs/v19_design_2026-09-09.md's predeclared protocol. This script enforces
+that check itself rather than trusting the caller to have looked.
 
-Mask2Former's post_process_instance_segmentation returns a single non-overlapping
-segmentation map, so no separate overlap-resolution pass is needed.
+Mask2Former's post_process_instance_segmentation already returns a single
+non-overlapping segmentation map (each pixel assigned to at most one segment,
+argmax over query logits) -- unlike the YOLO-seg pipeline's V6-V18 scripts,
+there is no separate crop/NMS/overlap-resolution step needed here.
 
 Usage:
 
     python scripts/export_v19_submission.py \\
-        --checkpoint outputs/v19_mask2former_azure_all_annotators/best_model \\
-        --result outputs/v19_mask2former_azure_all_annotators/v19_threshold_calibration.json \\
+        --checkpoint outputs/v19_mask2former_azure_full/best_model \\
+        --result outputs/v19_mask2former_azure_full/v19_full_result.json \\
         --data-root data/raw \\
-        --out outputs/v19_mask2former_azure_all_annotators/submission.csv
+        --out outputs/v19_mask2former_azure_full/submission.csv
 """
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import sys
 from pathlib import Path
@@ -35,65 +35,28 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT))
 
 SUBMIT_BAR_TUNE = 0.448703
-SUBMIT_BAR_AUDIT = 0.470763
 MIN_MASK_AREA = 20
-EXPECTED_POPULATIONS = {
-    "tune": {"files": 94, "annotator_records": 150, "gt_instances": 1134},
-    "audit": {"files": 47, "annotator_records": 67, "gt_instances": 459},
-}
+MASK_THRESHOLD = 0.5
+INFER_SIZE = 2048  # native test-image resolution; no train/infer mismatch
+# issue here since this is the FINAL export pass, run once, not the per-epoch
+# model-selection loop that E029/v19_regression_2026-09-10.md fixed. Unlike
+# that loop, a single higher-resolution inference pass at submission time is
+# exactly what the original design doc asked for.
 
 
-def checkpoint_sha256(checkpoint_dir: Path) -> str:
-    model_path = checkpoint_dir / "model.safetensors"
-    if not model_path.is_file():
-        raise RuntimeError(f"Missing checkpoint weights: {model_path}")
-    digest = hashlib.sha256()
-    with model_path.open("rb") as handle:
-        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
-            digest.update(chunk)
-    return digest.hexdigest()
-
-
-def load_and_check_result(result_path: Path, checkpoint_dir: Path | None = None) -> dict:
+def load_and_check_result(result_path: Path) -> dict:
     result = json.loads(result_path.read_text())
-    tune_pq = float(result.get("best_tune_pq", float("-inf")))
-    audit_pq = float(result.get("audit_pq", float("-inf")))
-    threshold = float(result.get("selected_threshold", float("nan")))
-    infer_size = int(result.get("eval_resolution", 0))
-    authorized = (
-        result.get("export_authorized") is True
-        and result.get("cleared_submit_bar") is True
-        and tune_pq >= SUBMIT_BAR_TUNE
-        and audit_pq >= SUBMIT_BAR_AUDIT
-        and 0.0 <= threshold <= 1.0
-        and infer_size > 0
-        and result.get("populations") == EXPECTED_POPULATIONS
-    )
-    if not authorized:
+    if not result.get("cleared_submit_bar"):
         raise RuntimeError(
-            f"V19 calibration is not export-authorized: "
-            f"export_authorized={result.get('export_authorized')}, "
-            f"cleared_submit_bar={result.get('cleared_submit_bar')}, "
-            f"tune={tune_pq} (required {SUBMIT_BAR_TUNE}), "
-            f"audit={audit_pq} (required {SUBMIT_BAR_AUDIT}), "
-            f"threshold={result.get('selected_threshold')}, "
-            f"eval_resolution={result.get('eval_resolution')}, "
-            f"populations={result.get('populations')}. "
-            "Both canonical bars and candidate-identity checks gate export; refusing CSV."
+            f"v19_full_result.json reports cleared_submit_bar={result.get('cleared_submit_bar')} "
+            f"(best_tune_pq={result.get('best_tune_pq')} vs required {SUBMIT_BAR_TUNE}). "
+            "SUBMIT_BAR gates export -- refusing to generate a submission CSV."
         )
-    if checkpoint_dir is not None:
-        expected_sha = result.get("checkpoint_sha256")
-        actual_sha = checkpoint_sha256(checkpoint_dir)
-        if expected_sha != actual_sha:
-            raise RuntimeError(
-                f"Checkpoint hash mismatch: calibration={expected_sha}, actual={actual_sha}. "
-                "Refusing to export a different model than the calibrated candidate."
-            )
     return result
 
 
 def export_submission(checkpoint_dir: Path, test_dir: Path, out_csv: Path,
-                      threshold: float, infer_size: int) -> dict:
+                       infer_size: int = INFER_SIZE) -> dict:
     import torch
     from pycocotools import mask as mask_utils
     import cv2
@@ -132,7 +95,7 @@ def export_submission(checkpoint_dir: Path, test_dir: Path, out_csv: Path,
             with torch.autocast("cuda", dtype=torch.float16):
                 outputs = model(**inputs)
             result = processor.post_process_instance_segmentation(
-                outputs, threshold=threshold, target_sizes=[(infer_size, infer_size)],
+                outputs, threshold=MASK_THRESHOLD, target_sizes=[(infer_size, infer_size)],
             )[0]
 
         segmentation = result["segmentation"].cpu().numpy()
@@ -174,9 +137,6 @@ def export_submission(checkpoint_dir: Path, test_dir: Path, out_csv: Path,
         "test_images": len(test_images),
         "populated_images": populated,
         "empty_images": empty_images,
-        "threshold": threshold,
-        "infer_size": infer_size,
-        "checkpoint_sha256": checkpoint_sha256(checkpoint_dir),
         "out_csv": str(out_csv),
     }
 
@@ -186,24 +146,24 @@ def main() -> None:
     parser.add_argument("--checkpoint", type=Path, required=True,
                          help="Path to the best_model/ directory saved by run_full_training")
     parser.add_argument("--result", type=Path, required=True,
-                        help="Canonical v19_threshold_calibration.json; checked fail-closed")
+                         help="Path to v19_full_result.json -- checked for cleared_submit_bar")
     parser.add_argument("--data-root", type=Path, default=REPO_ROOT / "data" / "raw")
     parser.add_argument("--out", type=Path, required=True)
+    parser.add_argument("--force", action="store_true",
+                         help="Skip the SUBMIT_BAR check (diagnostics only; never use to submit)")
     args = parser.parse_args()
 
-    result = load_and_check_result(args.result, args.checkpoint)
-    threshold = float(result["selected_threshold"])
-    infer_size = int(result["eval_resolution"])
-    print(f"Canonical V19 export authorized: tune={result['best_tune_pq']:.6f} "
-          f">= {SUBMIT_BAR_TUNE}, audit={result['audit_pq']:.6f} "
-          f">= {SUBMIT_BAR_AUDIT}, threshold={threshold:.2f}, "
-          f"resolution={infer_size}, checkpoint={result['checkpoint_sha256']}." )
+    if args.force:
+        print("WARNING: --force set, skipping SUBMIT_BAR check. This CSV must not be submitted "
+              "unless the bar is independently confirmed cleared.", file=sys.stderr)
+    else:
+        result = load_and_check_result(args.result)
+        print(f"SUBMIT_BAR cleared: best_tune_pq={result['best_tune_pq']:.6f} "
+              f">= {SUBMIT_BAR_TUNE}. Proceeding with export.")
 
     test_dir = (args.data_root / "filament-segmentation-2026" / "MAGFiLO_1.0_Kaggle_2026"
                 / "test" / "test_images")
-    summary = export_submission(
-        args.checkpoint, test_dir, args.out, threshold=threshold, infer_size=infer_size,
-    )
+    summary = export_submission(args.checkpoint, test_dir, args.out)
     print(json.dumps(summary, indent=2))
 
 

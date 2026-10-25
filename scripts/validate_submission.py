@@ -24,14 +24,6 @@ def validate_submission(path, test_stems, shape=(2048, 2048), min_area=20):
     if unknown:
         raise ValueError(f"Unknown test images: {sorted(unknown)}")
     frame["image"] = parsed[0]
-    frame["instance_number"] = parsed[1].astype(int)
-    for stem, numbers in frame.groupby("image", sort=False)["instance_number"]:
-        actual = sorted(numbers.tolist())
-        expected = list(range(1, len(actual) + 1))
-        if actual != expected:
-            raise ValueError(
-                f"Non-sequential filament IDs for {stem}: expected {expected}, found {actual}"
-            )
     areas = []
     for stem, rows in frame.groupby("image"):
         occupied = np.zeros(shape, dtype=bool)

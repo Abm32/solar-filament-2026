@@ -177,9 +177,14 @@ def main():
     ap.add_argument("--b", required=True)
     ap.add_argument("--noise", default=None, help="recipe name of the A' seed-control run")
     ap.add_argument("--out", type=Path, required=True)
+    ap.add_argument("--only", type=Path, default=None,
+                    help="V69: restrict to the file names listed in this file")
     args = ap.parse_args()
     gt = load_gt(args.fold)
     names = sorted(gt)
+    if args.only:
+        keep = set(args.only.read_text().split())
+        names = [n for n in names if n in keep]
     detail = {}
     for r in [args.a, args.b] + ([args.noise] if args.noise else []):
         detail[r] = [file_detail(r, args.fold, n, gt[n][0], gt[n][1], K.CONFIDENCES)

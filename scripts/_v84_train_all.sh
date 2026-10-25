@@ -1,0 +1,1 @@
+cd ~/solar-filament-2026; echo $(date -Is) start soft_all gpu0 >> outputs/v84/STATUS; CUDA_VISIBLE_DEVICES=0 .venv/bin/python scripts/train_v82_refiner_targets.py fold --arm soft --fold 0 --train-all --out outputs/v84/export > outputs/v84/export/soft_all.log 2>&1; echo $(date -Is) soft_all exit $? >> outputs/v84/STATUS

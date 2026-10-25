@@ -57,9 +57,12 @@ def load_fold(folds_path: Path, fold: int):
     return sorted(train), sorted(held)
 
 
-def prepare_fold_dataset(fold: int, train_files, work: Path) -> dict:
-    """YOLO dataset containing ONLY the training files' records (symlinked images)."""
-    data = work / f"yolo_fold{fold}"
+def prepare_fold_dataset(fold: int, train_files, work: Path, image_dir: Path = IMAGE_DIR,
+                         suffix: str | None = None, data_dir: Path | None = None,
+                         record_ok=None) -> dict:
+    """YOLO dataset containing ONLY the training files' records (symlinked images).
+    record_ok(image_id) -> bool keeps a subset of records (V96 annotator-style arms)."""
+    data = data_dir or work / f"yolo_fold{fold}"
     manifest = data / "manifest.json"
     coco = json.loads(ANNOTATIONS.read_text())
     images = {i["id"]: i for i in coco["images"]}
@@ -78,11 +81,13 @@ def prepare_fold_dataset(fold: int, train_files, work: Path) -> dict:
     n_rec = n_lab = 0
     for image_id in sorted(images, key=str):
         info = images[image_id]
-        if info["file_name"] not in keep:
+        if info["file_name"] not in keep or (record_ok and not record_ok(image_id)):
             continue
-        src = IMAGE_DIR / info["file_name"]
         p = Path(info["file_name"])
-        target = f"{p.stem}_ann{image_id}{p.suffix}"
+        src = image_dir / (p.stem + suffix if suffix else p.name)
+        if not src.exists():
+            raise FileNotFoundError(src)
+        target = f"{p.stem}_ann{image_id}{suffix or p.suffix}"
         (img_out / target).symlink_to(src)
         lines = [v21.polygon_line(poly, info["width"], info["height"])
                  for a in anns.get(image_id, []) for poly in a["segmentation"] if len(poly) >= 6]
@@ -99,10 +104,81 @@ def prepare_fold_dataset(fold: int, train_files, work: Path) -> dict:
 
 
 RECIPES = ("baseline", "focal_dice", "baseline_seed2", "p2last", "p2first",
-           "p2last_seed2", "p2first_seed2", "p2first_cp")
+           "p2last_seed2", "p2first_seed2", "p2first_cp",
+           "p2first_m", "p2first_1280", "p2first_long", "p2first_flip", "p2first_rot",
+           "p2first_ns", "p2first_lt1", "p2first_lt2", "p2first_lt5",
+           "p2first_thin", "p2first_union", "p2first_limb",
+           "p2first_hard", "p2first_g01", "p2first_more")
+V68_ARMS = ("p2first_m", "p2first_1280", "p2first_long", "p2first_flip", "p2first_rot",
+            "p2first_ns", "p2first_lt1", "p2first_lt2", "p2first_lt5",
+            "p2first_thin", "p2first_union", "p2first_limb",
+           "p2first_hard", "p2first_g01", "p2first_more")  # all p2first graphs
+# V96: continuation stage only, warm-started from the fold's p2first final.pt, on one annotator style.
+# hard = the two annotators V84 scores at 0.399 (= public); g01 = annotation group 01 (0.435);
+# more = control, same extra epochs on every record.
+STYLE_ARMS = {"p2first_hard": lambda iid: iid.split("-")[0] in ("010101", "010401"),
+              "p2first_g01": lambda iid: iid.startswith("01"),
+              "p2first_more": lambda iid: True}
+LIMB_IMAGES = ROOT / "outputs/v94/images"  # V94: limb-divided train images, <stem>.png
 SEED2 = 20261005          # noise-control seed; never equals SEED
 COPY_PASTE = 0.3          # V64 copy-paste probability, fixed before any V64 run
 ALL_DATA_FOLD = 99        # label for the final all-707-file model (no held-out set)
+PSEUDO_ROOT = Path("/mnt/v76")  # V76: teacher pseudo-labels on unlabelled GONG frames
+PSEUDO_FRAMES = 935      # V76: 1:1 with fold-0 labelled records (keeps training ~2x, not 3x)
+
+
+LT_ROOT = Path("/mnt/v78_frames")  # V78: same-site GONG frames near each labelled train file
+LT_BUCKETS = {"p2first_lt1": ("m1", "p1"), "p2first_lt2": ("m2", "p2"), "p2first_lt5": ("m5", "p5")}
+V81_LABELS = {"p2first_thin": "thin", "p2first_union": "union"}  # V81: own dataset dir per arm
+
+
+def add_label_transfer(recipe: str, fold: int, work: Path) -> dict:
+    """V78: one nearby archive frame per labelled record, carrying that record's labels unchanged."""
+    data = work / f"yolo_fold{fold}"
+    marker = data / "lt_manifest.json"
+    if marker.exists():
+        return json.loads(marker.read_text())
+    rng = np.random.default_rng(78)
+    recs = sorted(q for q in (data / "images/train").iterdir() if not q.name.startswith(("lt_", "pseudo_")))
+    n = 0
+    for img in recs:
+        name = img.name.split("-")[-1]
+        cands = [LT_ROOT / b / name for b in LT_BUCKETS[recipe] if (LT_ROOT / b / name).exists()]
+        if not cands:
+            continue
+        src = cands[rng.integers(len(cands))]
+        (data / "images/train" / f"lt_{img.name}").symlink_to(src.resolve())
+        shutil.copy(data / "labels/train" / f"{img.stem}.txt", data / "labels/train" / f"lt_{img.stem}.txt")
+        n += 1
+    if not n:
+        raise RuntimeError(f"no label-transfer frames under {LT_ROOT}")
+    saved = {"lt_root": str(LT_ROOT), "lt_buckets": LT_BUCKETS[recipe], "lt_records": n,
+             "labelled_records": len(recs)}
+    marker.write_text(json.dumps(saved, indent=2) + "\n")
+    return saved
+
+
+def add_pseudo(fold: int, work: Path) -> dict:
+    """V76 p2first_ns: link the fold-K teacher's pseudo-labelled archive frames into the dataset."""
+    src = PSEUDO_ROOT / f"pseudo_fold{fold}"
+    data = work / f"yolo_fold{fold}"
+    marker = data / "pseudo_manifest.json"
+    if marker.exists():
+        return json.loads(marker.read_text())
+    labels = sorted((src / "labels").glob("*.txt"))
+    if len(labels) > PSEUDO_FRAMES:
+        rng = np.random.default_rng(76)
+        labels = sorted(labels[i] for i in rng.choice(len(labels), PSEUDO_FRAMES, replace=False))
+    if not labels:
+        raise RuntimeError(f"no pseudo-labels in {src}")
+    for lab in labels:
+        img = next((src / "images").glob(lab.stem + ".*"))
+        (data / "images/train" / f"pseudo_{img.name}").symlink_to(img.resolve())
+        shutil.copy(lab, data / "labels/train" / f"pseudo_{lab.name}")
+    saved = {"pseudo_source": str(src), "pseudo_frames": len(labels),
+             "pseudo_label_lines": sum(len(p.read_text().splitlines()) for p in labels)}
+    marker.write_text(json.dumps(saved, indent=2) + "\n")
+    return saved
 
 
 def stage_args(recipe: str, stage: str, smoke: bool) -> dict:
@@ -118,6 +194,16 @@ def stage_args(recipe: str, stage: str, smoke: bool) -> dict:
         args = dict(args, seed=SEED2)
     if recipe.endswith("_cp"):  # V64: Ultralytics copy-paste (default flip mode), both stages
         args = dict(args, copy_paste=COPY_PASTE)
+    if recipe == "p2first_m":       # V68: yolo11m scale; batch 2 (T4 memory), nbs keeps eff. batch
+        args = dict(args, batch=2)
+    if recipe == "p2first_1280":    # V68: 1280 input -> 640x640 stride-2 prototypes
+        args = dict(args, imgsz=1280, batch=2)
+    if recipe == "p2first_long" and not smoke:  # V68: 2x schedule (160 + 40)
+        args = dict(args, epochs=args["epochs"] * 2)
+    if recipe == "p2first_flip":    # V68: flips at train time (inference already uses 4 flips)
+        args = dict(args, fliplr=0.5, flipud=0.5)
+    if recipe == "p2first_rot":     # V68 addendum: full-angle rotation + flips
+        args = dict(args, degrees=180, fliplr=0.5, flipud=0.5)
     return args
 
 
@@ -175,16 +261,25 @@ def main():
     loss_info = None
     init_source = INIT_WEIGHTS
     arch = args.recipe.removesuffix("_seed2").removesuffix("_cp")
+    init_name = arch
+    if arch in V68_ARMS:
+        arch, init_name = "p2first", ("p2first_m" if arch == "p2first_m" else "p2first")
     if arch in ("p2last", "p2first"):
         if len([d for d in args.device.split(",") if d]) != 1:
             raise RuntimeError("V62 patches the validator in-process: use exactly one GPU")
         import v62_init
         import v62_patch
-        init_source = ROOT / "outputs/v62_init" / f"{arch}_init.pt"
+        init_source = ROOT / "outputs/v62_init" / f"{init_name}_init.pt"
         if not init_source.exists():
-            v62_init.build(arch, init_source)
+            if init_name == "p2first_m":
+                v62_init.build(arch, init_source, coco="yolo11m-seg.pt",
+                               cfg_name="yolo11m-p2first-seg.yaml")
+            else:
+                v62_init.build(arch, init_source)
         v62_patch.install(2 if arch == "p2first" else 4)
-    if args.recipe.endswith("_cp"):
+    if args.recipe.endswith("_cp") or args.recipe == "p2first_1280" or os.environ.get("SOLAR_CHUNKED_LOSS"):
+        # V100: SOLAR_CHUNKED_LOSS=1 lets any recipe use the memory-light identical loss (shared-GPU runs).
+        # V68b: 1280 fold 2 stage 2 OOMed at batch 2 (Ultralytics fell back to batch 1).
         # V65 resume: copy-paste raises instances/image; stage-2 (1024x1024 masks) OOMed on a
         # 16 GB T4. Chunked+checkpointed UPSTREAM BCE = identical value/gradient, less memory.
         import v61_seg_loss
@@ -198,10 +293,34 @@ def main():
                                "(DDP subprocesses would not inherit the patch)")
     out = args.work / (f"smoke_{args.recipe}_fold{args.fold}" if args.smoke
                        else f"{args.recipe}_fold{args.fold}")
-    ds = prepare_fold_dataset(args.fold, train_files, args.work)
-    data_yaml = args.work / f"yolo_fold{args.fold}" / "data.yaml"
-    base = train_stage("base", init_source, stage_args(args.recipe, "base", args.smoke),
-                       data_yaml, out, args.device)
+    data_dir = args.work / f"yolo_fold{args.fold}"
+    if args.recipe in V81_LABELS:
+        import v81_labels
+        data_dir = data_dir.with_name(f"{data_dir.name}_{V81_LABELS[args.recipe]}")
+        ds = v81_labels.build(V81_LABELS[args.recipe], train_files, data_dir, ANNOTATIONS,
+                              IMAGE_DIR, v21.polygon_line)
+    elif args.recipe in STYLE_ARMS:
+        data_dir = data_dir.with_name(f"{data_dir.name}_{args.recipe}")
+        ds = prepare_fold_dataset(args.fold, train_files, args.work, data_dir=data_dir,
+                                  record_ok=STYLE_ARMS[args.recipe])
+    elif args.recipe == "p2first_limb":
+        data_dir = data_dir.with_name(f"{data_dir.name}_limb")
+        ds = prepare_fold_dataset(args.fold, train_files, args.work, image_dir=LIMB_IMAGES,
+                                  suffix=".png", data_dir=data_dir)
+    else:
+        ds = prepare_fold_dataset(args.fold, train_files, args.work)
+    if args.recipe == "p2first_ns":
+        ds = dict(ds, **add_pseudo(args.fold, args.work))
+    if args.recipe in LT_BUCKETS:
+        ds = dict(ds, **add_label_transfer(args.recipe, args.fold, args.work))
+    data_yaml = data_dir / "data.yaml"
+    if args.recipe in STYLE_ARMS:
+        warm = ROOT / "outputs/v61_persistent" / f"p2first_fold{args.fold}" / "final.pt"
+        base = {"stage": "warm_p2first_final", "checkpoint": str(warm), "checkpoint_sha256": sha256(warm)}
+        init_source = warm
+    else:
+        base = train_stage("base", init_source, stage_args(args.recipe, "base", args.smoke),
+                           data_yaml, out, args.device)
     cont = train_stage("mask_ratio1", Path(base["checkpoint"]),
                        stage_args(args.recipe, "mask_ratio1", args.smoke), data_yaml, out,
                        args.device)

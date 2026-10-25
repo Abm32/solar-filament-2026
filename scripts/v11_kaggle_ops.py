@@ -91,10 +91,8 @@ def main():
                            "abhimanyu122/solar-filament-v13-", "abhimanyu122/solar-filament-v14-",
                            "abhimanyu122/solar-filament-v15-", "abhimanyu122/solar-filament-v16-",
                            "abhimanyu122/solar-filament-v17-", "abhimanyu122/solar-filament-v18-",
-                           "abhimanyu122/solar-filament-v19-", "abhimanyu122/solar-filament-v32-",
-                           "abhimanyu122/solar-filament-v33-", "abhimanyu122/solar-filament-v35-",
-                           "abhimanyu122/solar-filament-ea-")):
-        raise ValueError("Expected a dedicated abhimanyu122 V11-V19/V32/V33/V35/EA notebook slug.")
+                           "abhimanyu122/solar-filament-v19-", "abhimanyu122/solar-filament-ea-")):
+        raise ValueError("Expected a dedicated abhimanyu122 V11/V12/V13/V14/V15/V16/V17/V18/V19/EA notebook slug.")
     if receipt and (receipt["ref"] != ref or receipt["sha256"] != digest):
         raise ValueError("Staged source changed after a launch attempt; use a new stage and slug.")
     from kaggle.api.kaggle_api_extended import KaggleApi

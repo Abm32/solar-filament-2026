@@ -10,6 +10,7 @@ outputs/
 models/
 wandb/
 *.pt
+!weights/*.pt
 *.pth
 *.ckpt
 *.onnx
@@ -19,3 +20,11 @@ kaggle.json
 
 # Downloaded third-party payload notebook; retain only our linked review.
 references/notebooks/lamhuy_unet_055/
+
+# LaTeX build artefacts (main.pdf is kept)
+report/acm/*.aux
+report/acm/*.log
+report/acm/*.bbl
+report/acm/*.blg
+report/acm/*.out
+report/acm/build.log

@@ -90,7 +90,12 @@ def cmd_infer(args):
         p = cache_path(args.recipe, args.fold, name)
         if p.exists():
             continue
-        write_views(p, K.generate_views(model, IMAGE_DIR / name, iou=0.3))
+        src = (args.image_dir or IMAGE_DIR) / name
+        if args.image_dir and not src.exists():
+            src = src.with_suffix(".png")  # V94: transformed images are png
+            if not src.exists():
+                continue  # V69: no neighbour frame for this file in this bucket
+        write_views(p, K.generate_views(model, src, iou=0.3, imgsz=args.imgsz))
         if i % 20 == 0:
             print(f"fold{args.fold} {i}/{len(held)}", flush=True)
     print(f"fold{args.fold} done {len(held)} files")
@@ -166,6 +171,9 @@ def main():
     i.add_argument("--fold", type=int, required=True, choices=range(5))
     i.add_argument("--recipe", required=True)
     i.add_argument("--weights", type=Path, required=True)
+    i.add_argument("--imgsz", type=int, default=1024)
+    i.add_argument("--image-dir", type=Path, default=None, dest="image_dir",
+                   help="V69: read same-named images from here (neighbour frames)")
     p = sub.add_parser("pool")
     p.add_argument("--recipe", required=True)
     p.add_argument("--out", type=Path, required=True)

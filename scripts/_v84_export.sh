@@ -1,0 +1,1 @@
+cd ~/solar-filament-2026; GPUS="0 1 2" IMGSZ=1024 MIN_AREA=200 MASK_T=0.50 DEMOTE=outputs/v84/export/demote_all.json REFINER=outputs/v84/export/soft_all_refiner_state.pt OUT=outputs/v84/export NAME=submission_v84 bash scripts/_v74_export.sh /mnt/v61/p2first_fold99/mask_ratio1/final.pt > outputs/v84/export/run_export.log 2>&1; echo $(date -Is) export exit $? >> outputs/v84/STATUS

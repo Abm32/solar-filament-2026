@@ -1,0 +1,2 @@
+# V76 refined fold-0 check (2026-10-11, by solar-ee session)
+Direct fold 0: p2first_ns +0.0106 (P 0.961) = continue. Refined (scripts/v76_refined_fold0.py = V81 harness, reproduces V73 base fold 0 exactly): p2first 0.4533 (1028/431/612) vs p2first_ns 0.4539 (1037/453/603), d +0.0007, CI [-0.0095, +0.0108], P 0.58. MIN200 +0.0017. Below the +0.010 refined bar: KILL for export purposes. outputs/v76/refined_fold0.json.

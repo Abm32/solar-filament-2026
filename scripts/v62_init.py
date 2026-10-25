@@ -89,11 +89,11 @@ def sha256(path: Path) -> str:
     return h.hexdigest()
 
 
-def build(variant: str, out: Path, coco: str = "yolo11s-seg.pt") -> dict:
+def build(variant: str, out: Path, coco: str = "yolo11s-seg.pt", cfg_name: str | None = None) -> dict:
     import v62_arch
     from ultralytics import YOLO
 
-    cfg = v62_arch.CONFIGS / CFG[variant]
+    cfg = v62_arch.CONFIGS / (cfg_name or CFG[variant])
     if not cfg.exists():
         v62_arch.write_all()
     base = YOLO(coco)

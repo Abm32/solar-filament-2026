@@ -19,6 +19,7 @@ import argparse
 import gzip
 import hashlib
 import json
+import os
 import sys
 import time
 from pathlib import Path
@@ -27,7 +28,7 @@ import cv2
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
-DATA_ROOT = ROOT / "data/raw/filament-segmentation-2026/MAGFiLO_1.0_Kaggle_2026"
+DATA_ROOT = Path(os.environ.get("SOLAR_DATA_ROOT", ROOT / "data/raw/filament-segmentation-2026/MAGFiLO_1.0_Kaggle_2026"))
 CACHE_DIR = ROOT / "outputs/kaggle_v17_cache_pull/proposal_cache"
 V6_SOURCE = ROOT / "outputs/v6_inference_source"
 CANONICAL_REFINER = ROOT / "outputs/kaggle_coco_refiner/best_refiner_coco.pt"
